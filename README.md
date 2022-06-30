@@ -3,10 +3,10 @@
 An operating system (OS) is a software that usually are used to scale applications easily and 
 typically replaces the **superloop** found in simple systems. The operating system ...
 
-- manages the **hardware resources** such as the CPU, memory and I/O devices
-- manages an application or group of **tasks** running on the computer
-
-
+- manages how the CPU is allocated to different tasks (Chapters 4, 5, 6)
+- manages how the memory is organized and how it is allocated (Chapter 7)
+- manages how I/O devices communicate with the application (Chapter 8)
+- manages the startup of the hardware (Chapter 9)
 
 ## 1. Classification
 _______________________________________________________________________________
@@ -46,6 +46,8 @@ categories ...
 
 2. In your oppinion what is the best operating system?
 3. Is there a multi-user multi-task RTOS?
+
+
 
 ## 2. Structure
 _______________________________________________________________________________
@@ -133,6 +135,7 @@ E
 - Write a simple application which uses the UART to print 'Hello world!'
 
 
+
 ## 3. Dataflow
 _______________________________________________________________________________
 
@@ -151,24 +154,35 @@ layer.
 - Demo with a logging function to show how the layers communicate with each other
 - Learn how to trace the calls using debugging and profiling tools for a simple project
 
-## 4. Task management
+
+## 4. Boot process
 _______________________________________________________________________________
 
-### 4.1. Task concept
+After reset the CPU always jumps to a predefined address and starts the execution from there. 
+The program found there is called the startup code. It initializes the memory and for simple 
+operating systems the next step is to call the main function. The main function will the further
+initialize the operating system, the hardware, create application tasks and then transfer 
+control to the scheduler.
+
+```commandline
+TODO: Boot process visualization
+```
+
+## 5. Task management
+_______________________________________________________________________________
+
+### 5.1. Task concept
 
 A task is a simple program that runs as if it had the microprocessor all to itself.
 Each owns a stack space to store temporary values and executes specific functions. Tasks 
-have also a priority based on their importance. 
+might also have a priority based on their importance. 
 
 ![](assets\OS-TaskModel.png)
 
-Threads are tasks that share the same memory layout. Because of that any two threads can
-access the same memory locations.
+ - Threads are tasks that share the same address space 
+ - Processes are tasks with their own address space
 
-Processes are tasks with their own memory layout. Two processes cannot normally access the
-same memory locations. Different processes typically have different access rights.
-
-### 4.2. Task states
+### 5.2. Task states
 
 ![](assets\OS-TaskStates.png)
 
@@ -179,128 +193,96 @@ The minimum set of states in typical task state model consists of the following 
 3. **Waiting** (blocked until an event occurrs, I/O for example).
 
 
-### 4.3. Task scheduling
+### 5.3. Task scheduling
 
 Schedulers determine which task to be executed at a given point of time and differ mainly in the 
 way they distribute computation time between tasks in the READY state.
 
-#### 4.3.1. Priority scheduling
+#### 5.3.1. Priority scheduling
 
-***TODO: Picture showing round-robin scheduling in different contexts (terminate, ISR, etc...)***
+![](assets/OS_Scheduling_Priority.png)
 
 With priority scheduling tasks are executed by their assigned prority. Usually higher numbers 
 mean higher priority.
 
-#### 4.3.2. Round-robin
+- Good for systems with variable time and resource requirements
+- Precise control of the timing of critical tasks
+- Starvation effect possible for intensive high priority tasks
+- Starvation can be mitigated with the aging technique or by adding small delays
 
-***TODO: Picture showing round-robin scheduling in different contexts (terminate, ISR, etc...)***
+#### 5.3.2. Round-robin
 
-With round-robin scheduling each task gets a certain amount of time or `time slices` to use
+![](assets/OS_Scheduling_RoundRobin.png)
+
+With round-robin scheduling each task gets a certain amount of time or **time slices** to use
 the CPU. After the predefined amount of time passes the scheduler deactivates the running
 task and activates the next task that is in the READY state. This ensures that each task
 gets some CPU time.
 
-#### 4.3.3. First Come, First Served
+- No starvation effect as all tasks are executed
+- Best reponse in terms of average reponse time accross all tasks
+- Low slicing time reudces CPU efficiency due to frequent context switching
+- Worser control of the timing of critical tasks
 
-***TODO: Picture showing scheduling in different contexts (terminate, ISR, etc...)***
+#### 5.3.3. First Come First Served
+
+![](assets/OS_Scheduling_FirstComeFirstServed.png)
 
 With this type of algorithm tasks are executed in order of their arrival. It is the easiest
 and simplest CPU scheduling algorithm.
 
-### 4.4. Task switching
+- Simple implementation
+- Starvation effect possible if a tasks takes a long time to execute
+- Higher average wait time compared to other scheduling algorithms
 
-The scheduler activates the highest priority task that is ready-to-run. Scheduling occurres when...
+#### 5.3.5. Shortest Job First
 
-- An interrupt sends a message to a task using the services of the kernel. Based on the priority
-of the sending and the receiving tasks, the one with higher priority gets resumed
+![](assets/OS_Scheduling_ShortestJobFirst.png)
 
-- A task sends a message to another task. Again, if the receiving task is with higher priority
-than the sending task then the kernel will switch to the receiving task. Otherwise, the
-sending task continues execution. 
+With SJF tasks with shorter execution time have higher priority when scheduled for execution. 
+This scheduling is mainly used to minimize the waiting time.
 
-- A task delays itself for a specified amount of time. In that case, the task is suspended
-and the kernel selects and runs the next most important task taht is ready-to-run.
+- Starvation efect possible
+- Best average waiting time
+- Needs an estimation of the burst time
 
-Task or context switching is the process of storing the state of a task, so that it can be 
-restored and resume execution later, while another (more important) task gets activated. The 
-state of the task is a special data structure called **Task Control Block** or short **TCB**.
+### 5.4. Task switching
 
-In more details the scheduler:
-1. Saves the processor registers on the current task's stack
-2. Saves the stack pointer on the TCB of the current task.
-3. Loads the stack pointer from the TCB of the new task.
-4. Loads the processor registers from the values stored on the new task's stack.
+Task switching is the process of one task releasing and another task taking control of the CPU. 
+The the state of the releasing task is saved, so that it can be restored and resume execution 
+later. The task state is stored in a special structure called the **Task Control Block (TCB)**.
 
-#### 4.4.1. Cooperative switching
+Switching algorithm:
 
-A cooperative task switch is performed by the task itself. The task suspends itself
-for example by calling a blocking function.
+1. Push the processor registers on the stack of the current task
+2. Push the stack pointer on the stack of the current task
+3. Push the local variables and return addresses on the stack
+4. Load the stack pointer from the TCB of the new task
+5. Load the processor registers from the values stored on the new task's stack
 
-Pure cooperative multi-tasking systems have the disadvantage of longer reaction times
-when a higher priority task becomes ready for execution and are therefor rarely used in
-real-time systems.
-
-#### 4.4.2. Preemptive switching
-
-A **preemptive task switch** may be caused externally. If a higher priority task becomes
-ready, then the scheduler suspends the current task and executes the higher priority one. 
-Preemptive multitasking **may be switched off** in sections of a program where task switches are 
-prohibited, known as **critical regions**.
+Some operating systems allow tasks to be interrupted by other more important tasks. This is 
+called a **preemptive** context switching and is the dominant mechanism used in RTOS. The other 
+type of switching is called **cooperative** and in this case the task must explicitly release 
+the CPU before another task can take control. 
 
 ### Practice
 - Write a scheduler with a priority switching
 - Write a scheduler with round robin switching
 - Write a scheduler with first-come-first-served scheduling
 
-## 5. Memory management
-
-- Explain heap, stack and other memory related definition
-- Explain some important concepts such as memory initialization and NULL
-- Explain the function of the linker
-- Take a look at a program (for example .com, .exe or .elf)
-- Explain how the program is loaded in to the memory
 
 
 
-## 6. Interrupts
-
-Interrupts can be software and hardware.
-
-Hardware interrupts are interruptions of a program caused by hardware. When an interrupt occurres
-the CPU saves its registers and executes an ISR (Interrupt service routine). After the 
-ISR is completed the highest priority task which is ready to run executes.
-ISRs are nestable - an ISR can execute within another ISR.
-
-Software interrupts are caused by an exceptional condition or a special instruction
-which causes an interrupt when executed.
-
-
-Interrupt latency is the time between the interrupt occurres and the time when the
-according ISR starts executing. The worst case interrupt latency is an important value
-regarding a RTOS.
-
-A *maskable* interrupt can be disabled or ignored by the instructions of the CPU.
-*Maskable* interrupts can be handled after the current instruction executes.
-
-Interrupts can have priorities. If two different interrupts occur at the same time
-the one with the higher priority gets executed first. Additionaly an interrupt can
-never be interrupted by an interrupt of lower or equal priority.
-
-An ISR perserves all registers and must restore the environment completely.
-Interrupt handlers must finish quickly.
-
-
-
-## 7. Task synchronization
+## 6. Task synchronization
 _______________________________________________________________________________
 
 Kernels provide a variety of services for synchronizing tasks, communicating between tasks and 
 handling events.
 
-### 7.1 Semaphore
+### 6.1 Semaphore
 
-Semaphore is an integer variable which is used as a signal to allow a process to access the 
-critical section of the code or certain other resources. A semaphore manages an internal counter 
+Semaphore is an integer variable which is used as a **signaling mechanism** to allow a process to 
+access the critical section of the code or certain other resources. A semaphore manages an internal counter 
 which is decremented by each `acquire()` call and incremented by each `release()` call. The 
 counter of the semaphore can never go below zero and when `acquire()` finds that it is zero, it 
 blocks, waiting until some other task calls `release()`.
@@ -320,13 +302,16 @@ blocks until an instance becomes available.
 
  
 
-### 7.2 Mutex
+### 6.2 Mutex
 
-A mutex or the **mutual exclusion** service is a special type of synchronization mechanism which 
-resembles the binary semaphore.It implements though some additional logic to solve a 
-common problem of semaphores called **priority inversion**.
+A mutex or the mutual exclusion service is a special type of **locking mechanism** which 
+resembles the binary semaphore. It implements additionally an algorithm called **priority 
+inheritance** to solve a common problem of semaphores called **priority inversion**.
 
-Priority inversions can occur for example in the following situation ... 
+#### 6.2.1 Priority inversion
+
+A typical exapmple of priority inversion is when several tasks with different priority levels 
+use semaphores and try to access the CPU ...
 
 ![Priority Inversion](assets/OS-PriorityInversion.png)
 
@@ -339,15 +324,15 @@ and preempts the LP Task.
 6. The LP Task finishes using the resouce and releases the semaphore
 7. The HP Task acquires the semaphore and resumes
 
-In this situation the priority of the HP Task is reduced to that of the LP Task
-that it waits for to finish using a resource. Because of that the HP Task gets
-unnecessarily delayed.
+In this situation the priority of the HP Task is essentially reduced to that of the LP Task
+that it waits for to finish using a resource. Because of that the HP Task gets unnecessarily 
+delayed.
+
+#### 6.2.2. Priority inheritance
 
 A mutex would elevate the priority of the LP task to that of the HP task. In this way the medium 
 priority task will not be scheduled for execution while the mutex is acquired. This mechanism is 
-also called **priority inheritance**.
-
-Now the same situation as above will change to the following scenario ...
+also called priority inheritance.
 
 ![img.png](assets/OS-PriorityInheritance.png)
 
@@ -361,7 +346,7 @@ Now the same situation as above will change to the following scenario ...
 8. The HP Task finishes using the resource and releases the mutex
 9. The MP Task is scheduled for execution
 
-### 7.3 Lock
+### 6.3. Lock
 
 A reader-writer lock allows simultaneous access for read-only operations while write operations 
 require exclusive access.
@@ -370,15 +355,24 @@ Multiple tasks can read at the same time, but a writing task will block others f
 writing. A readers-writer block can also be implemented using semaphores and mutexes.
 
 
-### 7.4 Event
+### 6.4. Event
+Events are similar to interrupts in the sense that they are a signaling 
+
+
+### 6.5. Common synchronziation problems
+
+- Deadlock
+- Starvation
+- Priority inversion
 
 
 
-## 8. Task communication
+
+## 7. Task communication
 _______________________________________________________________________________
 
 
-### 8.1 Mailbox
+### 7.1 Mailbox
 
 - A mailbox is a **message buffer** managed by the RTOS.
 - The messages have **fixed data size** and are usually small.
@@ -390,7 +384,7 @@ _______________________________________________________________________________
   if a task switching must be done, according to the priority of the running task and the task 
   waiting for a message
 
-### 8.2 Queues
+### 7.2 Queues
 
 - Queues are **message buffers**
 - Queues accept **messages of different lengths**.
@@ -401,3 +395,116 @@ _______________________________________________________________________________
 - When a message arrives the **kernel notifies the waiting task** and the scheduler determines 
   if a task switching must be done, according to the priority of the running task and the task 
   waiting for a message
+
+
+## 8. Memory management
+_______________________________________________________________________________
+
+```commandline
+TODO: Image of the points below
+```
+- static for global and static variables
+- stack for local variables
+- heap for dynamic allocation
+- Explain some important concepts such as memory initialization and NULL
+
+```commandline
+TODO: Image of the points below
+```
+- Explain the function of the linker
+- Take a look at a program (for example .com, .exe or .elf)
+- Explain how the program is loaded in to the memory
+
+
+## 9. Interrupts
+_______________________________________________________________________________
+
+Interrupts are special signals which cause the CPU to halt the current execution and jump to an 
+address which contains an **Interrupt Service Routine (ISR)**. The interrupts are an efficient 
+mechanism used by I/O devices to signal that there is data available and relieve the processor from 
+constant polling of the I/O device status. 
+
+The interrupts can be configured by using the so called **Interrupt Descriptor Table (IDT)** which 
+maps interrupt requests to the address of the memory of the ISR. Note that definitions of ISR and 
+**interrupt handler** are identical. 
+
+Some interrupts can be also disabled using masks. Such interrupts are also called **maskable 
+interrupts**.
+
+```commandline
+TODO: Picture of the process and the IDT
+```
+
+### 9.1. Hardware interrupts
+
+Hardware interrupts are interruptions of a program caused by hardware. When an interrupt occurres
+the CPU saves its registers and executes an ISR (Interrupt service routine). After the 
+ISR is completed the highest priority task which is ready to run executes.
+
+### 9.2. Software interrupts
+
+Software interrupts are caused by an exceptional condition or a special instruction
+which causes an interrupt when executed.
+
+### 9.3. Nesting and priorities
+
+In multi-tasking environments the **ISR can interrupt even high priorities tasks** and the 
+scheduler. The interrupts themselves can be also **nested and have priorities** and usually lower 
+numbers means higher priority. An interrupt ca never be interrupted by an interrupt of lower or 
+equal priority. If two different interrupts occur at the same time the one with the higher 
+priority gets executed first.
+
+### 9.4. Interrupt latency
+
+Interrupt latency is the time between the interrupt occurres and the time when the
+according ISR starts executing. The worst case interrupt latency is an important value
+regarding a RTOS.
+
+
+
+## References
+
+- https://www.youtube.com/playlist?list=PLEBQazB0HUyQ4hAPU1cJED6t3DU0h34bz
+- https://www.tutorialspoint.com/operating_system/os_process_scheduling_algorithms.htm
+- https://data-flair.training/blogs/scheduling-algorithms-in-operating-system/
+- https://digital.com/program-your-own-os/
+- https://littleosbook.github.io/
+- https://www.geeksforgeeks.org/mutex-vs-semaphore/
+- https://www.beningo.com/5-best-practices-for-designing-rtos-based-applications/
+- https://kb.hilscher.com/display/GPS/Job-Worker+Task+Model
+- https://en.wikipedia.org/wiki/Booting
+
+
+
+## Good practice
+ - Optimization of functions (3 parameters, 4 bytes)
+ - Semaphore is a check, Mutex blocks
+ - The main() function will not be interrupted by any of the created tasks because those
+tasks execute only following the call to OS_Start(). It is therefore usually recommended to
+create all or most of your tasks here, as well as your control structures such as mailboxes
+and semaphores. Good practice is to write software in the form of modules which are (up
+to a point) reusable. These modules usually have an initialization routine, which creates
+any required task(s) and control structures. A typical main() function looks similar to the
+following example:
+
+```commandline
+void main(void) {
+
+  // Initialize embOS (must be first)
+  OS_Init();    
+  
+  // Initialize hardware for embOS (in RTOSInit.c)
+  OS_InitHW();  
+  
+  // Call Init routines of all program modules which in turn will create
+  // the tasks they need ... (Order of creation may be important)
+  MODULE1_Init();
+  MODULE2_Init();
+  MODULE3_Init();
+  MODULE4_Init();
+  MODULE5_Init();
+  
+  // Start multitasking
+  OS_Start(); 
+}
+```
