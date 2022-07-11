@@ -49,7 +49,7 @@ categories ...
 
 
 
-## 2. Structure
+## 2. Structural analysis
 _______________________________________________________________________________
 
 ![](assets\OS-Structure.png)
@@ -136,7 +136,7 @@ E
 
 
 
-## 3. Dataflow
+## 3. Dataflow analysis
 _______________________________________________________________________________
 
 ![](assets\OS-Dataflow.png)
@@ -151,11 +151,13 @@ The drivers and the kernal of the OS always access the hardware using the hardwa
 layer. 
 
 ### Practice
-- Demo with a logging function to show how the layers communicate with each other
+- Demo with a logger to show how the layers communicate with each other
 - Learn how to trace the calls using debugging and profiling tools for a simple project
 
 
-## 4. Boot process
+## 4. Runtime analysis
+
+## 5. Boot process
 _______________________________________________________________________________
 
 After reset the CPU always jumps to a predefined address and starts the execution from there. 
@@ -168,10 +170,10 @@ control to the scheduler.
 TODO: Boot process visualization
 ```
 
-## 5. Task management
+## 6. Task management
 _______________________________________________________________________________
 
-### 5.1. Task concept
+### 6.1. Task concept
 
 A task is a simple program that runs as if it had the microprocessor all to itself.
 Each owns a stack space to store temporary values and executes specific functions. Tasks 
@@ -182,7 +184,7 @@ might also have a priority based on their importance.
  - Threads are tasks that share the same address space 
  - Processes are tasks with their own address space
 
-### 5.2. Task states
+### 6.2. Task states
 
 ![](assets\OS-TaskStates.png)
 
@@ -193,7 +195,7 @@ The minimum set of states in typical task state model consists of the following 
 3. **Waiting** (blocked until an event occurrs, I/O for example).
 
 
-### 5.3. Task scheduling
+### 6.3. Task scheduling
 
 Schedulers determine which task to be executed at a given point of time and differ mainly in the 
 way they distribute computation time between tasks in the READY state.
@@ -246,7 +248,7 @@ This scheduling is mainly used to minimize the waiting time.
 - Best average waiting time
 - Needs an estimation of the burst time
 
-### 5.4. Task switching
+### 6.4. Task switching
 
 Task switching is the process of one task releasing and another task taking control of the CPU. 
 The the state of the releasing task is saved, so that it can be restored and resume execution 
@@ -273,13 +275,13 @@ the CPU before another task can take control.
 
 
 
-## 6. Task synchronization
+## 7. Task synchronization
 _______________________________________________________________________________
 
 Kernels provide a variety of services for synchronizing tasks, communicating between tasks and 
 handling events.
 
-### 6.1 Semaphore
+### 7.1 Semaphore
 
 Semaphore is an integer variable which is used as a **signaling mechanism** to allow a process to 
 access the critical section of the code or certain other resources. A semaphore manages an internal counter 
@@ -302,13 +304,13 @@ blocks until an instance becomes available.
 
  
 
-### 6.2 Mutex
+### 7.2 Mutex
 
 A mutex or the mutual exclusion service is a special type of **locking mechanism** which 
 resembles the binary semaphore. It implements additionally an algorithm called **priority 
 inheritance** to solve a common problem of semaphores called **priority inversion**.
 
-#### 6.2.1 Priority inversion
+#### 7.2.1 Priority inversion
 
 A typical exapmple of priority inversion is when several tasks with different priority levels 
 use semaphores and try to access the CPU ...
@@ -328,7 +330,7 @@ In this situation the priority of the HP Task is essentially reduced to that of 
 that it waits for to finish using a resource. Because of that the HP Task gets unnecessarily 
 delayed.
 
-#### 6.2.2. Priority inheritance
+#### 7.2.2. Priority inheritance
 
 A mutex would elevate the priority of the LP task to that of the HP task. In this way the medium 
 priority task will not be scheduled for execution while the mutex is acquired. This mechanism is 
@@ -346,7 +348,7 @@ also called priority inheritance.
 8. The HP Task finishes using the resource and releases the mutex
 9. The MP Task is scheduled for execution
 
-### 6.3. Lock
+### 7.3. Lock
 
 A reader-writer lock allows simultaneous access for read-only operations while write operations 
 require exclusive access.
@@ -355,11 +357,11 @@ Multiple tasks can read at the same time, but a writing task will block others f
 writing. A readers-writer block can also be implemented using semaphores and mutexes.
 
 
-### 6.4. Event
+### 7.4. Event
 Events are similar to interrupts in the sense that they are a signaling 
 
 
-### 6.5. Common synchronziation problems
+### 7.5. Common synchronziation problems
 
 - Deadlock
 - Starvation
@@ -368,11 +370,11 @@ Events are similar to interrupts in the sense that they are a signaling
 
 
 
-## 7. Task communication
+## 8. Task communication
 _______________________________________________________________________________
 
 
-### 7.1 Mailbox
+### 8.1 Mailbox
 
 - A mailbox is a **message buffer** managed by the RTOS.
 - The messages have **fixed data size** and are usually small.
@@ -384,7 +386,7 @@ _______________________________________________________________________________
   if a task switching must be done, according to the priority of the running task and the task 
   waiting for a message
 
-### 7.2 Queues
+### 8.2 Queues
 
 - Queues are **message buffers**
 - Queues accept **messages of different lengths**.
@@ -397,7 +399,7 @@ _______________________________________________________________________________
   waiting for a message
 
 
-## 8. Memory management
+## 9. Memory management
 _______________________________________________________________________________
 
 ```commandline
@@ -416,7 +418,7 @@ TODO: Image of the points below
 - Explain how the program is loaded in to the memory
 
 
-## 9. Interrupts
+## 10. Interrupts
 _______________________________________________________________________________
 
 Interrupts are special signals which cause the CPU to halt the current execution and jump to an 
@@ -435,18 +437,18 @@ interrupts**.
 TODO: Picture of the process and the IDT
 ```
 
-### 9.1. Hardware interrupts
+### 10.1. Hardware interrupts
 
 Hardware interrupts are interruptions of a program caused by hardware. When an interrupt occurres
 the CPU saves its registers and executes an ISR (Interrupt service routine). After the 
 ISR is completed the highest priority task which is ready to run executes.
 
-### 9.2. Software interrupts
+### 10.2. Software interrupts
 
 Software interrupts are caused by an exceptional condition or a special instruction
 which causes an interrupt when executed.
 
-### 9.3. Nesting and priorities
+### 10.3. Nesting and priorities
 
 In multi-tasking environments the **ISR can interrupt even high priorities tasks** and the 
 scheduler. The interrupts themselves can be also **nested and have priorities** and usually lower 
@@ -454,7 +456,7 @@ numbers means higher priority. An interrupt ca never be interrupted by an interr
 equal priority. If two different interrupts occur at the same time the one with the higher 
 priority gets executed first.
 
-### 9.4. Interrupt latency
+### 10.4. Interrupt latency
 
 Interrupt latency is the time between the interrupt occurres and the time when the
 according ISR starts executing. The worst case interrupt latency is an important value
@@ -476,7 +478,7 @@ regarding a RTOS.
 
 
 
-## Good practice
+## Good practices
  - Optimization of functions (3 parameters, 4 bytes)
  - Semaphore is a check, Mutex blocks
  - The main() function will not be interrupted by any of the created tasks because those
