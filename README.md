@@ -3,13 +3,13 @@
 An operating system (OS) is a software that usually are used to scale applications easily and 
 typically replaces the **superloop** found in simple systems. The operating system ...
 
-- manages how the CPU is allocated to different tasks (Chapters 4, 5, 6)
-- manages how the memory is organized and how it is allocated (Chapter 7)
-- manages how I/O devices communicate with the application (Chapter 8)
-- manages the startup of the hardware (Chapter 9)
+- allows an easy scaling of the application (Chapters 2, 3, 4)
+- manages how the CPU is allocated to different tasks (Chapters 5, 6, 7)
+- manages how the memory is organized and how it is allocated (Chapter 8)
+- manages how I/O devices communicate with the application (Chapter 9)
+- manages the startup of the hardware (Chapter 10)
 
 ## 1. Classification
-_______________________________________________________________________________
 
 ![](assets\OS-Classification.png)
 
@@ -50,7 +50,6 @@ categories ...
 
 
 ## 2. Structural analysis
-_______________________________________________________________________________
 
 ![](assets\OS-Structure.png)
 
@@ -137,7 +136,6 @@ E
 
 
 ## 3. Dataflow analysis
-_______________________________________________________________________________
 
 ![](assets\OS-Dataflow.png)
 
@@ -157,23 +155,15 @@ layer.
 
 ## 4. Runtime analysis
 
-## 5. Boot process
-_______________________________________________________________________________
+![Priority Inversion](assets/OS-Runtime.png)
 
-After reset the CPU always jumps to a predefined address and starts the execution from there. 
-The program found there is called the startup code. It initializes the memory and for simple 
-operating systems the next step is to call the main function. The main function will the further
-initialize the operating system, the hardware, create application tasks and then transfer 
-control to the scheduler.
+The idle task is responsible for freeing memory allocated by the RTOS to tasks that have since 
+been deleted. It is therefore important in applications to ensure the idle task is not starved 
+of processing time.
 
-```commandline
-TODO: Boot process visualization
-```
+## 5. Task management
 
-## 6. Task management
-_______________________________________________________________________________
-
-### 6.1. Task concept
+### 5.1. Task concept
 
 A task is a simple program that runs as if it had the microprocessor all to itself.
 Each owns a stack space to store temporary values and executes specific functions. Tasks 
@@ -184,7 +174,7 @@ might also have a priority based on their importance.
  - Threads are tasks that share the same address space 
  - Processes are tasks with their own address space
 
-### 6.2. Task states
+### 5.2. Task states
 
 ![](assets\OS-TaskStates.png)
 
@@ -195,7 +185,7 @@ The minimum set of states in typical task state model consists of the following 
 3. **Waiting** (blocked until an event occurrs, I/O for example).
 
 
-### 6.3. Task scheduling
+### 5.3. Task scheduling
 
 Schedulers determine which task to be executed at a given point of time and differ mainly in the 
 way they distribute computation time between tasks in the READY state.
@@ -248,7 +238,7 @@ This scheduling is mainly used to minimize the waiting time.
 - Best average waiting time
 - Needs an estimation of the burst time
 
-### 6.4. Task switching
+### 5.4. Task switching
 
 Task switching is the process of one task releasing and another task taking control of the CPU. 
 The the state of the releasing task is saved, so that it can be restored and resume execution 
@@ -275,13 +265,12 @@ the CPU before another task can take control.
 
 
 
-## 7. Task synchronization
-_______________________________________________________________________________
+## 6. Task synchronization
 
 Kernels provide a variety of services for synchronizing tasks, communicating between tasks and 
 handling events.
 
-### 7.1 Semaphore
+### 6.1 Semaphore
 
 Semaphore is an integer variable which is used as a **signaling mechanism** to allow a process to 
 access the critical section of the code or certain other resources. A semaphore manages an internal counter 
@@ -304,13 +293,13 @@ blocks until an instance becomes available.
 
  
 
-### 7.2 Mutex
+### 6.2 Mutex
 
 A mutex or the mutual exclusion service is a special type of **locking mechanism** which 
 resembles the binary semaphore. It implements additionally an algorithm called **priority 
 inheritance** to solve a common problem of semaphores called **priority inversion**.
 
-#### 7.2.1 Priority inversion
+#### 6.2.1 Priority inversion
 
 A typical exapmple of priority inversion is when several tasks with different priority levels 
 use semaphores and try to access the CPU ...
@@ -330,7 +319,7 @@ In this situation the priority of the HP Task is essentially reduced to that of 
 that it waits for to finish using a resource. Because of that the HP Task gets unnecessarily 
 delayed.
 
-#### 7.2.2. Priority inheritance
+#### 6.2.2. Priority inheritance
 
 A mutex would elevate the priority of the LP task to that of the HP task. In this way the medium 
 priority task will not be scheduled for execution while the mutex is acquired. This mechanism is 
@@ -348,7 +337,7 @@ also called priority inheritance.
 8. The HP Task finishes using the resource and releases the mutex
 9. The MP Task is scheduled for execution
 
-### 7.3. Lock
+### 6.3. Lock
 
 A reader-writer lock allows simultaneous access for read-only operations while write operations 
 require exclusive access.
@@ -357,11 +346,11 @@ Multiple tasks can read at the same time, but a writing task will block others f
 writing. A readers-writer block can also be implemented using semaphores and mutexes.
 
 
-### 7.4. Event
+### 6.4. Event
 Events are similar to interrupts in the sense that they are a signaling 
 
 
-### 7.5. Common synchronziation problems
+### 6.5. Common synchronziation problems
 
 - Deadlock
 - Starvation
@@ -370,11 +359,9 @@ Events are similar to interrupts in the sense that they are a signaling
 
 
 
-## 8. Task communication
-_______________________________________________________________________________
+## 7. Task communication
 
-
-### 8.1 Mailbox
+### 7.1 Mailbox
 
 - A mailbox is a **message buffer** managed by the RTOS.
 - The messages have **fixed data size** and are usually small.
@@ -386,7 +373,7 @@ _______________________________________________________________________________
   if a task switching must be done, according to the priority of the running task and the task 
   waiting for a message
 
-### 8.2 Queues
+### 7.2 Queues
 
 - Queues are **message buffers**
 - Queues accept **messages of different lengths**.
@@ -399,8 +386,7 @@ _______________________________________________________________________________
   waiting for a message
 
 
-## 9. Memory management
-_______________________________________________________________________________
+## 8. Memory management
 
 ```commandline
 TODO: Image of the points below
@@ -417,9 +403,10 @@ TODO: Image of the points below
 - Take a look at a program (for example .com, .exe or .elf)
 - Explain how the program is loaded in to the memory
 
+## 9. Registers
+...
 
 ## 10. Interrupts
-_______________________________________________________________________________
 
 Interrupts are special signals which cause the CPU to halt the current execution and jump to an 
 address which contains an **Interrupt Service Routine (ISR)**. The interrupts are an efficient 
@@ -463,6 +450,17 @@ according ISR starts executing. The worst case interrupt latency is an important
 regarding a RTOS.
 
 
+## 11. Boot process
+
+After reset the CPU always jumps to a predefined address and starts the execution from there. 
+The program found there is called the startup code. It initializes the memory and for simple 
+operating systems the next step is to call the main function. The main function will the further
+initialize the operating system, the hardware, create application tasks and then transfer 
+control to the scheduler.
+
+```commandline
+TODO: Boot process visualization
+```
 
 ## References
 
