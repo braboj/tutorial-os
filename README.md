@@ -11,7 +11,7 @@ typically replaces the **superloop** found in simple systems. The operating syst
 
 ## 1. Classification
 
-![](assets\OS-Classification.png)
+![](./assets/OS-Classification.png)
 
 The are several differentiation criteria used to classify the operating system. If we take the 
 access to the CPU in cosideration, then the operating systems is be classified as ...
@@ -51,7 +51,7 @@ categories ...
 
 ## 2. Structural analysis
 
-![](assets\OS-Structure.png)
+![](./assets/OS-Structure.png)
 
 ### 2.1. Hardware
 
@@ -137,7 +137,7 @@ E
 
 ## 3. Dataflow analysis
 
-![](assets\OS-Dataflow.png)
+![](./assets/OS-Dataflow.png)
 
 The task usually can call the drivers and libraries from the middleware or the OS. Additionally to 
 increase the usability of the program the task has also access to the OSAL interface. 
@@ -169,14 +169,14 @@ A task is a simple program that runs as if it had the microprocessor all to itse
 Each owns a stack space to store temporary values and executes specific functions. Tasks 
 might also have a priority based on their importance. 
 
-![](assets\OS-TaskModel.png)
+![](./assets/OS-TaskModel.png)
 
  - Threads are tasks that share the same address space 
  - Processes are tasks with their own address space
 
 ### 5.2. Task states
 
-![](assets\OS-TaskStates.png)
+![](./assets/OS-TaskStates.png)
 
 The minimum set of states in typical task state model consists of the following states ...
 
