@@ -194,7 +194,7 @@ way they distribute computation time between tasks in the READY state.
 
 ![](assets/OS_Scheduling_Priority.png)
 
-With priority scheduling tasks are executed by their assigned prority. Usually higher numbers 
+With priority scheduling tasks are executed by their assigned prority. Usually lower numbers 
 mean higher priority.
 
 - Good for systems with variable time and resource requirements
