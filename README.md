@@ -5,8 +5,8 @@ typically replaces the **superloop** found in simple systems. The operating syst
 
 - allows an easy scaling of the application (Chapters 2, 3, 4)
 - manages how the CPU is allocated to different tasks (Chapters 5, 6, 7)
-- manages how the memory is organized and how it is allocated (Chapter 8)
-- manages how I/O devices communicate with the application (Chapter 9)
+- manages how I/O devices communicate with the application (Chapter 8)
+- manages how the memory is organized and how it is allocated (Chapter 9)
 - manages the startup of the hardware (Chapter 10)
 
 ## 1. Classification
@@ -386,27 +386,12 @@ Events are similar to interrupts in the sense that they are a signaling
   waiting for a message
 
 
-## 8. Memory management
+## 8. Peripherals access
 
-```commandline
-TODO: Image of the points below
-```
-- static for global and static variables
-- stack for local variables
-- heap for dynamic allocation
-- Explain some important concepts such as memory initialization and NULL
-
-```commandline
-TODO: Image of the points below
-```
-- Explain the function of the linker
-- Take a look at a program (for example .com, .exe or .elf)
-- Explain how the program is loaded in to the memory
-
-## 9. Registers
+### 8.1. Registers
 ...
 
-## 10. Interrupts
+### 8.2. Interrupts
 
 Interrupts are special signals which cause the CPU to halt the current execution and jump to an 
 address which contains an **Interrupt Service Routine (ISR)**. The interrupts are an efficient 
@@ -424,18 +409,18 @@ interrupts**.
 TODO: Picture of the process and the IDT
 ```
 
-### 10.1. Hardware interrupts
+#### 8.2.1. Hardware interrupts
 
 Hardware interrupts are interruptions of a program caused by hardware. When an interrupt occurres
 the CPU saves its registers and executes an ISR (Interrupt service routine). After the 
 ISR is completed the highest priority task which is ready to run executes.
 
-### 10.2. Software interrupts
+#### 8.2.2. Software interrupts
 
 Software interrupts are caused by an exceptional condition or a special instruction
 which causes an interrupt when executed.
 
-### 10.3. Nesting and priorities
+#### 8.2.3. Nesting and priorities
 
 In multi-tasking environments the **ISR can interrupt even high priorities tasks** and the 
 scheduler. The interrupts themselves can be also **nested and have priorities** and usually lower 
@@ -443,14 +428,32 @@ numbers means higher priority. An interrupt ca never be interrupted by an interr
 equal priority. If two different interrupts occur at the same time the one with the higher 
 priority gets executed first.
 
-### 10.4. Interrupt latency
+#### 8.2.4. Interrupt latency
 
 Interrupt latency is the time between the interrupt occurres and the time when the
 according ISR starts executing. The worst case interrupt latency is an important value
 regarding a RTOS.
 
 
-## 11. Boot process
+## 9. Memory management
+
+```commandline
+TODO: Image of the points below
+```
+- static for global and static variables
+- stack for local variables
+- heap for dynamic allocation
+- Explain some important concepts such as memory initialization and NULL
+
+```commandline
+TODO: Image of the points below
+```
+- Explain the function of the linker
+- Take a look at a program (for example .com, .exe or .elf)
+- Explain how the program is loaded in to the memory
+
+
+## 10. Boot process
 
 After reset the CPU always jumps to a predefined address and starts the execution from there. 
 The program found there is called the startup code. It initializes the memory and for simple 
