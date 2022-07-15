@@ -257,18 +257,25 @@ called a **preemptive** context switching and is the dominant mechanism used in 
 type of switching is called **cooperative** and in this case the task must explicitly release 
 the CPU before another task can take control. 
 
+
 ### Practice
 - Write a scheduler with a priority switching
 - Write a scheduler with round robin switching
 - Write a scheduler with first-come-first-served scheduling
 
-
-
-
 ## 6. Task synchronization
 
-Kernels provide a variety of services for synchronizing tasks, communicating between tasks and 
-handling events.
+### 6.1. Race conditions
+
+In concurrent systems taks can request shared resources at the same time, such as the 
+printer or the hard drive. For example it is impossible to print text from two tasks, 
+because the printed document will be a random sequence of characters depending on when the 
+tasks access the printer. Such scenarios are called **race conditions**. The operating systems 
+proivides special mechanisms to prevet such conditions. 
+
+``
+TODO: Picture with some race conditions examples
+``
 
 ### 6.1 Semaphore
 
@@ -299,8 +306,67 @@ A mutex or the mutual exclusion service is a special type of **locking mechanism
 resembles the binary semaphore. It implements additionally an algorithm called **priority 
 inheritance** to solve a common problem of semaphores called **priority inversion**.
 
-#### 6.2.1 Priority inversion
+### 6.3. Lock
 
+A reader-writer lock allows simultaneous access for read-only operations while write operations 
+require exclusive access.
+
+Multiple tasks can read at the same time, but a writing task will block others from reading or 
+writing. A readers-writer block can also be implemented using semaphores and mutexes.
+
+
+### 6.4. Event
+Events are similar to interrupts in the sense that they are a signaling mechanism. 
+
+### 6.5. Barrier
+### 6.6. Spinlock
+### 6.7. Condition variables
+
+
+### 6.8. Synchronziation problems
+
+#### 6.8.1. Deadlock
+
+A deadlock situation on a resource can arise if and only if all of the following conditions 
+occur simultaneously in a system (Coffman coditions) ...
+
+  - Mutual exclusion : At least one resource uses mutual exclusion
+  - Hold and wait : A process is hold a resource and waiting for resources used by other processses
+  - No preemption : A resource can be released only voluntarily by the process holding it
+  - Circular wait : Each process must be waiting for a resource being held by another process
+
+Prevention
+ - Task priority and preemption
+ - Lock ordering
+
+Detection
+  - ???
+
+Avoidance
+  - Break one of the deadlock conditions
+  - Dijkstra's solution
+  - Resource hierarchy solution
+  - Arbitrator solution
+
+#### 6.8.2  Starvation
+
+Starvation is a problem encountered in concurrent computing where a process is perpetually 
+denied necessary resources to process its work.
+
+Scenario
+  - High priority tasks run frequently
+
+Solution
+  - Task aging technique
+  - Delay in high priority tasks
+
+
+#### 6.8.3  Priority inversion
+
+##### 6.8.3.1. Scenario
+
+Priority inversion is a scenario in scheduling in which a high priority task is indirectly 
+superseded by a lower priority task effectively inverting the assigned priorities of the tasks. 
 A typical exapmple of priority inversion is when several tasks with different priority levels 
 use semaphores and try to access the CPU ...
 
@@ -319,7 +385,15 @@ In this situation the priority of the HP Task is essentially reduced to that of 
 that it waits for to finish using a resource. Because of that the HP Task gets unnecessarily 
 delayed.
 
-#### 6.2.2. Priority inheritance
+##### 6.8.3.2. Solutions
+
+``
+Keywords: Disable interrupts, priority ceiling, priority inheritance, random boosting, 
+read-copy-update...
+``
+
+
+**Priority inheritance**
 
 A mutex would elevate the priority of the LP task to that of the HP task. In this way the medium 
 priority task will not be scheduled for execution while the mutex is acquired. This mechanism is 
@@ -336,27 +410,6 @@ also called priority inheritance.
 7. The HP Task acquires the mutex and resumes
 8. The HP Task finishes using the resource and releases the mutex
 9. The MP Task is scheduled for execution
-
-### 6.3. Lock
-
-A reader-writer lock allows simultaneous access for read-only operations while write operations 
-require exclusive access.
-
-Multiple tasks can read at the same time, but a writing task will block others from reading or 
-writing. A readers-writer block can also be implemented using semaphores and mutexes.
-
-
-### 6.4. Event
-Events are similar to interrupts in the sense that they are a signaling 
-
-
-### 6.5. Common synchronziation problems
-
-- Deadlock
-- Starvation
-- Priority inversion
-
-
 
 
 ## 7. Task communication
@@ -476,6 +529,8 @@ TODO: Boot process visualization
 - https://www.beningo.com/5-best-practices-for-designing-rtos-based-applications/
 - https://kb.hilscher.com/display/GPS/Job-Worker+Task+Model
 - https://en.wikipedia.org/wiki/Booting
+- https://webeduclick.com/windows-2000-threads-and-smp-management
+- https://en.wikipedia.org/wiki/Synchronization_(computer_science)
 
 
 
