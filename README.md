@@ -244,6 +244,9 @@ Task switching is the process of one task releasing and another task taking cont
 The the state of the releasing task is saved, so that it can be restored and resume execution 
 later. The task state is stored in a special structure called the **Task Control Block (TCB)**.
 
+```
+TODO : Image illustrating the task switching algorithm
+```
 Switching algorithm:
 
 1. Push the processor registers on the stack of the current task
