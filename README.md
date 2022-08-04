@@ -1,7 +1,9 @@
 # Operating Systems
 
-An operating system (OS) is a software that usually are used to scale applications easily and 
-typically replaces the **superloop** found in simple systems. The operating system ...
+The operating system is a software product which provides useful services to developers and users . It usually is
+implemented in a way to be scalable and re-usable.
+
+The operating system ...
 
 - allows an easy scaling of the application (Chapters 2, 3, 4)
 - manages how the CPU is allocated to different tasks (Chapters 5, 6, 7)
@@ -33,6 +35,17 @@ categories ...
 - **Distributed OS** that ensures the distribution of task on physically separated CPUs
 - ...
 
+### Embedded systems and RTOS
+
+Embedded systems are electronic devices that have a microprocessor but is not a computer and
+have a very special purpose. Such systems are for example the electronic control unit (ECU)
+of the car, smart TV, etc.
+
+Embedded systems often use real-time operating systems, which execute code within strict
+time constraints. If the constraints are not met then this would be considered a failure.
+This kind of systems have the advantage to be predictable or also called deterministic. 
+
+
 
 ### Practice
 
@@ -46,7 +59,6 @@ categories ...
 
 2. In your oppinion what is the best operating system?
 3. Is there a multi-user multi-task RTOS?
-
 
 
 ## 2. Structural analysis
@@ -165,14 +177,15 @@ of processing time.
 
 ### 5.1. Task concept
 
-A task is a simple program that runs as if it had the microprocessor all to itself.
-Each owns a stack space to store temporary values and executes specific functions. Tasks 
-might also have a priority based on their importance. 
+A task is a simple program that runs as if it had the microprocessor all to itself. It is a
+set of register values and some local data. Each tasks owns a stack space to store 
+temporary values and executes specific functions. Tasks might also have a priority 
+based on their importance. Depending on the operating system a task can be understood 
+as a thread or a process. Threads are tasks that share the same address space, while 
+processes have their own address space.
 
 ![](./assets/OS-TaskModel.png)
 
- - Threads are tasks that share the same address space 
- - Processes are tasks with their own address space
 
 ### 5.2. Task states
 
@@ -188,21 +201,11 @@ The minimum set of states in typical task state model consists of the following 
 ### 5.3. Task scheduling
 
 Schedulers determine which task to be executed at a given point of time and differ mainly in the 
-way they distribute computation time between tasks in the READY state.
+way they distribute computation time between tasks in the READY state. The scheduler is one of
+the core features of the OS kernel. Technically it is a program which is exectuted periodically.
+The period between the executions is also called the **system tick**.
 
-#### 5.3.1. Priority scheduling
-
-![](assets/OS_Scheduling_Priority.png)
-
-With priority scheduling tasks are executed by their assigned prority. Usually lower numbers 
-mean higher priority.
-
-- Good for systems with variable time and resource requirements
-- Precise control of the timing of critical tasks
-- Starvation effect possible for intensive high priority tasks
-- Starvation can be mitigated with the aging technique or by adding small delays
-
-#### 5.3.2. Round-robin
+#### 5.3.1. Round-robin
 
 ![](assets/OS_Scheduling_RoundRobin.png)
 
@@ -216,6 +219,20 @@ gets some CPU time.
 - Low slicing time reudces CPU efficiency due to frequent context switching
 - Worser control of the timing of critical tasks
 
+
+#### 5.3.2. Priority scheduling
+
+![](assets/OS_Scheduling_Priority.png)
+
+With priority scheduling tasks are executed by their assigned prority. Usually lower numbers 
+mean higher priority.
+
+- Good for systems with variable time and resource requirements
+- Precise control of the timing of critical tasks
+- Starvation effect possible for intensive high priority tasks
+- Starvation can be mitigated with the aging technique or by adding small delays
+
+
 #### 5.3.3. First Come First Served
 
 ![](assets/OS_Scheduling_FirstComeFirstServed.png)
@@ -227,7 +244,8 @@ and simplest CPU scheduling algorithm.
 - Starvation effect possible if a tasks takes a long time to execute
 - Higher average wait time compared to other scheduling algorithms
 
-#### 5.3.5. Shortest Job First
+
+#### 5.3.4. Shortest Job First
 
 ![](assets/OS_Scheduling_ShortestJobFirst.png)
 
@@ -238,15 +256,23 @@ This scheduling is mainly used to minimize the waiting time.
 - Best average waiting time
 - Needs an estimation of the burst time
 
+
 ### 5.4. Task switching
 
-Task switching is the process of one task releasing and another task taking control of the CPU. 
-The the state of the releasing task is saved, so that it can be restored and resume execution 
-later. The task state is stored in a special structure called the **Task Control Block (TCB)**.
+#### 5.4.1. Multithreaded model
+
+In the multi-threading model, which is predominatly used in RTOS the task or context switching 
+is simply the change of one set of CPU register values to another set of CPU register values.
+The register values are also called the task state and it is stored in a special data structure
+called the **Task Control Block (TCB)**. The TCB contains a task's name, ID, priority, 
+state and others.
+
 
 ```
 TODO : Image illustrating the task switching algorithm
 ```
+
+
 Switching algorithm:
 
 1. Push the processor registers on the stack of the current task
@@ -261,10 +287,52 @@ type of switching is called **cooperative** and in this case the task must expli
 the CPU before another task can take control. 
 
 
-### Practice
+#### 5.4.2. Multiprocess model
+For multiprocessor systems each process has its own address space and cannot address the memory
+of the other processes. The context swap requires the re-configuration of a special chip called
+MMU (Memory Management Unit). The role of the MMU is to map the process address space to the
+address space of the physical memory. 
+
+```
+TODO: Picture with an explanation how the MMU works
+```
+
+
+#### 5.4.3. Lightweight process model
+This operation is much more complex and time consuming and thus not very useful for RTOS. If
+a MMU is present, the RTOS might use it to just protect other memory areas from being accessed
+by the current task. This model is also called **"Thread Protected Mode"** or **"Lightweight
+Process Model**".
+
+
+### 5.5. Interrupts
+
+Interrupts are a way to stop the current program execution and to jump to a special program
+called an **Interrupt Service Routine (ISR)**. The interrupts are an efficient mechanism 
+used by I/O devices to signal that there is data available and relieve the processor from 
+constant polling of the I/O device status. 
+
+The interrupt service routines can interrupt tasks and take control immediately. This could
+be quite detrimetral to the time constrains of the RTOS and this is why interrupts must be
+used with caution and be as quick as possible.
+
+The interrupts themselves can be also nested. An interrupt ca never be interrupted by 
+an interrupt of lower or equal priority. If two different interrupts occur at the 
+same time the one with the higher priority gets executed first.
+
+The first job of the interrupt should be to store the registar values of the CPU and
+the last job should be to restore these values.
+
+```
+TODO: Picture how the ISR is executed
+```
+
+
+### 5.6. Practice
 - Write a scheduler with a priority switching
 - Write a scheduler with round robin switching
 - Write a scheduler with first-come-first-served scheduling
+
 
 ## 6. Task synchronization
 
@@ -442,55 +510,6 @@ also called priority inheritance.
   waiting for a message
 
 
-## 8. Peripherals access
-
-### 8.1. Registers
-...
-
-### 8.2. Interrupts
-
-Interrupts are special signals which cause the CPU to halt the current execution and jump to an 
-address which contains an **Interrupt Service Routine (ISR)**. The interrupts are an efficient 
-mechanism used by I/O devices to signal that there is data available and relieve the processor from 
-constant polling of the I/O device status. 
-
-The interrupts can be configured by using the so called **Interrupt Descriptor Table (IDT)** which 
-maps interrupt requests to the address of the memory of the ISR. Note that definitions of ISR and 
-**interrupt handler** are identical. 
-
-Some interrupts can be also disabled using masks. Such interrupts are also called **maskable 
-interrupts**.
-
-```commandline
-TODO: Picture of the process and the IDT
-```
-
-#### 8.2.1. Hardware interrupts
-
-Hardware interrupts are interruptions of a program caused by hardware. When an interrupt occurres
-the CPU saves its registers and executes an ISR (Interrupt service routine). After the 
-ISR is completed the highest priority task which is ready to run executes.
-
-#### 8.2.2. Software interrupts
-
-Software interrupts are caused by an exceptional condition or a special instruction
-which causes an interrupt when executed.
-
-#### 8.2.3. Nesting and priorities
-
-In multi-tasking environments the **ISR can interrupt even high priorities tasks** and the 
-scheduler. The interrupts themselves can be also **nested and have priorities** and usually lower 
-numbers means higher priority. An interrupt ca never be interrupted by an interrupt of lower or 
-equal priority. If two different interrupts occur at the same time the one with the higher 
-priority gets executed first.
-
-#### 8.2.4. Interrupt latency
-
-Interrupt latency is the time between the interrupt occurres and the time when the
-according ISR starts executing. The worst case interrupt latency is an important value
-regarding a RTOS.
-
-
 ## 9. Memory management
 
 ```commandline
@@ -521,6 +540,16 @@ control to the scheduler.
 TODO: Boot process visualization
 ```
 
+## 11. Embedded program models
+
+- Simple loop calling functions
+- Main loop calling functions + ISR
+- RTOS + Task + ISR
+
+```
+TODO: Image with the embedded program models
+```
+
 ## References
 
 - https://www.youtube.com/playlist?list=PLEBQazB0HUyQ4hAPU1cJED6t3DU0h34bz
@@ -534,7 +563,6 @@ TODO: Boot process visualization
 - https://en.wikipedia.org/wiki/Booting
 - https://webeduclick.com/windows-2000-threads-and-smp-management
 - https://en.wikipedia.org/wiki/Synchronization_(computer_science)
-
 
 
 ## Good practices
