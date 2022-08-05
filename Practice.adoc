@@ -1,0 +1,28 @@
+==== Task 1
+
+- Identify the main hardware components on a development board
+- Compare the embedded hardwate to a standard PC
+- Clarify how embedded systems differ from standard hardware
+
+==== Task 2
+
+- Create a new netXStudio template project with an operating system
+- Identify the main components and find the HAL section
+
+- Create a new netXStudio template project with an operating system
+- Identify the main components of the operating system
+
+==== Task 3
+
+- Create a new netXStudio template project with an operating system
+- Identify the main components of the middleware
+
+==== Task 4
+
+- Create a new netXStudio template project with an operating system
+- Find the OSAL interface and its implementation
+
+==== Task 5
+
+- Create a new netXStudio template project with an operating system
+- Write a simple application which uses the UART to print 'Hello world!'
