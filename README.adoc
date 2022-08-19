@@ -1,240 +1,51 @@
 = Operating Systems
 :toc:
-:toclevels: 4
+:toclevels: 5
 
-== Introduction
 
-The operating system ...
+== 1. Hardware Basics
 
-- allows an easy scaling of the application (Chapters 2, 3, 4)
-- manages how the CPU is allocated to different tasks (Chapters 5, 6, 7)
-- manages how I/O devices communicate with the application (Chapter 8)
-- manages how the memory is organized and how it is allocated (Chapter 9)
-- manages the startup of the hardware (Chapter 10)
+image::assets/OS-Hardware-Basics.png[]
 
-== Classification
+=== CPU
+The CPU is the brain of a computer system and it is where the program is
+executed. The design of a system starts with the CPU and determines the choices
+of the bus and peripherals explained below.
 
-image::assets/OS-Classification.png[OS-Classification]
+The CPU consists of several parts
 
-The are several differentiation criteria used to classify the operating system.
-If we take the access to the CPU in cosideration, then the operating systems
-is be classified as ...
+- Arithmetic and Logic Unit (ALU)
+- Control Unit
+- Registers
 
-- A **single-task OS** that allows a single task to use the CPU
-- A **multi-tasking OS** that allows the execution of multiple tasks on a
-single CPU
 
-Further operating systems might be further differentiated based on the number
-of users such as ...
+=== Bus
 
-- A **single-user OS** allows only a single user to use the OS
-- A **multi-user OS** allows multiple users to use the OS
+==== Control bus
+This is the set of signals that is used to synchronize the activities of the
+separate computer components. Some of these control signals, such as RD and
+WR are sent by the CPU to the other elements to tell them what type of
+operation is currently in progress. The I/O elements can send control
+signals to the CPU. An example is the rest input (RES) of the CPU
+which, when driven LOW, causes the CPU to reset to a particular
+starting stare.
 
-And finally based on their use case, the operating systems might be divided
-in the following categories ...
+==== Address bus
+This is a unidirectional bus, because information flows over it in only
+one direction, from the CPU to other system components.
 
-- **General-purpose OS** that ensures the execution of all tasks without
-blocking
-- **Real-time OS** that ensures the execution of high priority tasks within a
-time limit
-- **Distributed OS** that ensures the distribution of task on physically
-separated CPUs
+When the CPU wants to communicate with a certain memory location or I/O device,
+it places the appropriate address code onto the address bus. The devices listen
+on the address bus and if one of them recognizes its address it will respond to
+the CPU request.
 
-== Components
+==== Data bus
+This is a bi-directional bus, because data can flow to or from the CPU.
 
-Embedded systems are electronic devices that have a microprocessor but is not
-a computer and have a very specific purpose. Such systems are for example the
-electronic control unit (ECU) of the car, smart TV, etc.
 
-Embedded systems often use real-time operating systems, which execute code
-within strict time constraints. If the constraints are not met then this
-would be considered a failure. This kind of systems have the advantage to be
-predictable or also called deterministic.
 
-image:assets/OS-Structure.png[OS-Structure]
-
-=== 2.1. HAL
-
-Many operating systems such as Linux or Windows are written in such a way
-that they work without knowledge of the underlying hardware. This is achieved
-by separating the interface from its implementation. The OS will use only the
-interface. The vendor of the OS or a hardware product is then responsible to
-implement the interface for a concrete platform.
-
-=== 2.2. Kernel
-
-The kernel is the main component of the operating system. It is responsible
-for the allocation and partition of the sytem memory, the handling and
-scheduling of the tasks and provides services for taks synchronization and
-communication. In many cases the kernel also provides device drivers to
-access the hardware.
-
-=== 2.3. Middleware
-
-The middleware provides some additional functionality to the operating system.
-These might include networking services, file system and
-
-=== 2.4. OSAL
-
-The middleware can be easily extended by the user providing own interfaces
-and libraries. One very useful component as part of the middleware is **OS
-abstraction layer** or the **OSAL**. As its counterpart on the hardware
-level, it allow separation of the interface of the basic kernel services from
-its implementation. This increases the reusability of the programming
-application allwoing the same software to run on different operating systems.
-In the **UNIX** world it is also named **POSIX**.
-
-== Dataflow diagram
-
-image::assets/OS-Dataflow.png[OS-Dataflow]
-
-The task usually can call the drivers and libraries from the middleware or
-the OS. Additionally to increase the usability of the program the task has
-also access to the OSAL interface. The middleware itself might use also OSAL
-for better reusability and has access to basic drivers provided by the
-operating system. The drivers and the kernal of the OS always access the
-hardware using the hardware abstraction layer.
-
-== Runtime diagram
-
-image::assets/OS-Runtime.png[OS-Runtime]
-
-The idle task is responsible for freeing memory allocated by the RTOS to
-tasks that have since been deleted. It is therefore important in applications
-to ensure the idle task is not starved of processing time.
-
-== Task management
-
-=== 5.1. Task concept
-
-A task is a simple program that runs as if it had the microprocessor all to
-itself. It is a set of register values and some local data. Each tasks owns a
-stack space to store temporary values and executes specific functions. Tasks
-might also have a priority based on their importance. Depending on the
-operating system a task can be understood as a thread or a process. Threads
-are tasks that share the same address space, while processes have their own
-address space.
-
-image::assets/OS-TaskModel.png[OS-Taskmodel]
-
-=== 5.2. Task states
-
-image::assets/OS-TaskStates.png[OS-TaskStates]
-
-The minimum set of states in typical task state model consists of
-the following states ...
-
-1. **Running** (takes control of the CPU);
-2. **Ready** (ready to be executed);
-3. **Waiting** (blocked until an event occurrs, I/O for example).
-
-=== 5.3. Task scheduling
-
-Schedulers determine which task to be executed at a given point of time and
-differ mainly in the way they distribute computation time between tasks in
-the READY state. The scheduler is one of the core features of the OS kernel.
-Technically it is a program which is exectuted periodically. The period
-between the executions is also called the **system tick**.
-
-==== 5.3.1. Round-robin
-
-image::assets/OS_Scheduling_RoundRobin.png[Round-Robin scheduling]
-
-With round-robin scheduling each task gets a certain amount of time or **time
-slices** to use the CPU. After the predefined amount of time passes the
-scheduler deactivates the running task and activates the next task that is in
-the READY state. This ensures that each task gets some CPU time.
-
-- No starvation effect as all tasks are executed
-- Best reponse in terms of average reponse time accross all tasks
-- Low slicing time reudces CPU efficiency due to frequent context switching
-- Worser control of the timing of critical tasks
-
-==== 5.3.2. Priority scheduling
-
-image::assets/OS_Scheduling_Priority.png[Priority scheduling]
-
-With priority scheduling tasks are executed by their assigned prority.
-Usually lower numbers mean higher priority.
-
-- Good for systems with variable time and resource requirements
-- Precise control of the timing of critical tasks
-- Starvation effect possible for intensive high priority tasks
-- Starvation can be mitigated with the aging technique or by adding small delays
-
-==== 5.3.3. First Come First Served
-
-image::assets/OS_Scheduling_FirstComeFirstServed.png[First-Come-First-Served
-scheduling]
-
-With this type of algorithm tasks are executed in order of their arrival.
-It is the easiest and simplest CPU scheduling algorithm.
-
-- Simple implementation
-- Starvation effect possible if a tasks takes a long time to execute
-- Higher average wait time compared to other scheduling algorithms
-
-==== 5.3.4. Shortest Job First
-
-image::assets/OS_Scheduling_ShortestJobFirst.png[Shortes-Job-First scheduling]
-
-With SJF tasks with shorter execution time have higher priority when
-scheduled for execution. This scheduling is mainly used to minimize the
-waiting time.
-
-- Starvation efect possible
-- Best average waiting time
-- Needs an estimation of the burst time
-
-=== 5.4. Task switching
-
-==== 5.4.1. Multi-threaded model
-
-In the multi-threading model, which is predominatly used in RTOS the task or
-context switching is simply the change of one set of CPU register values to
-another set of CPU register values. The register values are also called the
-task state and it is stored in a special data structure called the **Task
-Control Block (TCB)**. The TCB contains a task's name, ID, priority, state
-and others.
-
-```text
-TODO : Image illustrating the task switching algorithm
-```
-
-Switching algorithm:
-
-1. Push the processor registers on the stack of the current task
-2. Push the stack pointer on the stack of the current task
-3. Push the local variables and return addresses on the stack
-4. Load the stack pointer from the TCB of the new task
-5. Load the processor registers from the values stored on the new task's stack
-
-Some operating systems allow tasks to be interrupted by other more important
-tasks. This is called a **preemptive** context switching and is the dominant
-mechanism used in RTOS. The other type of switching is called **cooperative**
-and in this case the task must explicitly release the CPU before another task
-can take control.
-
-==== 5.4.2. Multi-process model
-
-For multiprocessor systems each process has its own address space and cannot
-address the memory of the other processes. The context swap requires the
-re-configuration of a special chip called MMU (Memory Management Unit). The
-role of the MMU is to map the process address space to the address space of
-the physical memory.
-
-```text
-TODO: Picture with an explanation how the MMU works
-```
-
-==== 5.4.3. Lightweight process model
-
-This operation is much more complex and time consuming and thus not very
-useful for RTOS. If a MMU is present, the RTOS might use it to just protect
-other memory areas from being accessed by the current task. This model is
-also called **"Thread Protected Mode"** or **"Lightweight Process Model**".
-
-=== 5.5. Interrupts
+=== Register
+=== Interrupt
 
 Interrupts are a way to stop the current program execution and to jump to a
 special program called an **Interrupt Service Routine (ISR)**. The interrupts
@@ -257,73 +68,349 @@ CPU and the last job should be to restore these values.
 TODO: Picture how the ISR is executed
 ```
 
-=== 5.6. Practice
-
-- Write a scheduler with a priority switching
-- Write a scheduler with round robin switching
-- Write a scheduler with first-come-first-served scheduling
+=== Memory
+=== Peripherals
 
 
-== Concurrency issues
+== 2. Operating Systems
 
-=== Race condition
+=== Overview
+
+- manages how I/O devices communicate with the application (Chapter 1)
+- offers a structural approach to develop applications (Chapter 2)
+- offers a scheduler to allocated CPU time to different tasks (Chapter 3)
+- offers a set of services for intertask communication (Chapter 5, 6)
+- manages how the memory is organized and how it is allocated (Chapter 7)
+
+
+=== Classification
+
+image::assets/OS-Classification.png[OS-Classification]
+
+The are several differentiation criteria used to classify the operating system.
+If we take the access to the CPU in cosideration, then the operating systems
+is be classified as ...
+
+- A **single-task OS** that allows a single task to use the CPU
+- A **multi-tasking OS** that allows the execution of multiple tasks on a
+single CPU
+
+Further operating systems might be further differentiated based on the number
+of users such as ...
+
+- A **single-user OS** allows only a single user to use the OS
+- A **multi-user OS** allows multiple users to use the OS
+
+And finally based on their use case, the operating systems might be divided
+in the following categories ...
+
+- **General-purpose OS** that ensures the execution of all tasks without
+blocking (fairness)
+
+- **Real-time OS** that ensures the execution of high priority tasks within a
+strict time limit (deterministic)
+
+
+Embedded systems are electronic devices that have a microprocessor but are not
+computers and usually have a very specific purpose. Such systems are for
+example the electronic control unit (ECU) of the car, smart TV, etc.
+
+Embedded systems often use real-time operating systems, which execute
+critical code within strict time constraints. If the constraints are not met
+then this would be considered a failure. This kind of systems have the
+advantage to be predictable (deterministic). This can be especially important
+in measurement and automation systems where downtime is costly or a program
+delay could cause a safety hazard.
+
+
+=== Components
+
+image:assets/OS-Structure.png[OS-Structure]
+
+==== HAL
+
+Many operating systems such as Linux or Windows are written in such a way
+that they work without knowledge of the underlying hardware. This is achieved
+by separating the interface from its implementation. The OS will only use the
+interface. Depending on the usecase either the OS developer or the hardware producer
+is responsible to implement the low level code accessed by the HAL API. These might
+be register mappings, low level drivers, etc.
+
+==== Kernel
+
+The kernel is the main component of the operating system. It is responsible
+for the allocation and partition of the sytem memory, the scheduling and switching
+of the tasks and provides objects and services for taks synchronization and communication.
+In many cases the kernel also provides device drivers to access common hardware such as
+memory, UART,
+
+==== Middleware
+
+The middleware provides some additional features to the operating system, which
+are very common but not strictly required for the OS to work. These might include
+networking services, file system and graphics libraries. The middleware can be
+easily extended by the user providing own interfaces and libraries.
+
+==== OSAL
+
+The OSAL (OS Abstraction Layer) is considered to be part of the middleware. It
+allows the users to write applications, which might be ported to other operating
+systems by separating the interface and the concrete implementation of common
+kernel services, such as semaphors, mutexes and others. In the **UNIX** world
+it is also named **POSIX**.
+
+== 3. Task Management
+
+=== Task Concept
+
+A task is typically an infinite loop which never terminates. It is a
+self-contained program which runs as if it had the microprocessor all to
+itself.
+
+Depending on the operating system a task can be understood as a thread or a
+process. Threads are tasks that share the same address space, while processes
+have their own address space.
+
+image::assets/OS-TaskModel.png[OS-Taskmodel]
+
+The process of sharing one CPU among many tasks and thus creating the
+illusion of parallel work is called **concurrent execution**. The process of
+running tasks on multiple processors is called **parallel executuion**.
+
+=== Task States
+
+The minimum set of states in typical task state model consists of
+the following states ...
+
+1. **Running** (takes control of the CPU);
+2. **Ready** (ready to be executed);
+3. **Waiting** (blocked until an event occurs ).
+
+The following graphic shows several examples of popular operating systems to
+illustrate the common and specific tasks states...
+
+image::assets/OS-TaskStates.png[OS-TaskStates]
+
+=== Task Scheduling
+
+Schedulers determine which task to be executed at a given point of time and
+differ mainly in the way they distribute computation time between tasks in
+the READY state. The scheduler is one of the core features of the OS kernel.
+Technically it is a program which is exectuted periodically. The period
+between the executions is also called the **system tick**.
+
+==== Round-robin
+
+image::assets/OS_Scheduling_RoundRobin.png[Round-Robin scheduling]
+
+With round-robin scheduling each task gets a certain amount of time or **time
+slices** to use the CPU. After the predefined amount of time passes the
+scheduler deactivates the running task and activates the next task that is in
+the READY state. This ensures that each task gets some CPU time.
+
+- No starvation effect as all tasks are executed
+- Best reponse in terms of average reponse time accross all tasks
+- Low slicing time reudces CPU efficiency due to frequent context switching
+- Worser control of the timing of critical tasks
+
+==== Priority scheduling
+
+image::assets/OS_Scheduling_Priority.png[Priority scheduling]
+
+With priority scheduling tasks are executed by their assigned prority.
+Usually lower numbers mean higher priority.
+
+- Good for systems with variable time and resource requirements
+- Precise control of the timing of critical tasks
+- Starvation effect possible for intensive high priority tasks
+- Starvation can be mitigated with the aging technique or by adding small delays
+
+==== First Come First Served
+
+image::assets/OS_Scheduling_FirstComeFirstServed.png[First-Come-First-Served
+scheduling]
+
+With this type of algorithm tasks are executed in order of their arrival.
+It is the easiest and simplest CPU scheduling algorithm.
+
+- Simple implementation
+- Starvation effect possible if a tasks takes a long time to execute
+- Higher average wait time compared to other scheduling algorithms
+
+==== Shortest Job First
+
+image::assets/OS_Scheduling_ShortestJobFirst.png[Shortes-Job-First scheduling]
+
+With SJF tasks with shorter execution time have higher priority when
+scheduled for execution. This scheduling is mainly used to minimize the
+waiting time.
+
+- Starvation efect possible
+- Best average waiting time
+- Needs an estimation of the burst time
+
+=== Task Switching
+
+==== Task Data
+
+Typically each task consists of folling parts...
+
+- Task code
+- Task variables
+- Task stack
+- Task control block (TCB)
+
+The task’s stack has the same function as in a single-task system: storage of
+return addresses of function calls, parameters and local variables, and
+temporary storage of intermediate results and register values. Each task can
+have a different stack size.
+
+The **Task Control Block (TCB)** is a data structure assigned to a task when it
+is created. The TCB contains status information for the task, including the
+stack pointer, task priority, current task status (ready, waiting, reason for
+suspension) and other management data. Knowledge of the stack pointer allows
+access to the other registers, which are typically stored (pushed onto) the
+stack when the task is created and each time it is suspended. This
+information allows an interrupted task to continue execution exactly where it
+left off. TCBs are only accessed by the RTOS.
+
+Internally the OS will save the TCBs of all stacks in a dynamic list, which
+might be changed on-demand if the OS allows creation of tasks in runtime.
+
+```
+TODO: Image illustrating the TCB and how it is chained
+```
+
+
+==== Multi-threaded model
+
+In the multi-threading model, which is predominatly used in RTOS the task or
+context switching is simplified the change of one set of CPU register values to
+another set of CPU register values.
+
+image::assets/OS-Multi-Threaded-Switch.png[]
+
+Switching algorithm:
+
+1. Push the registers, variables on the stack of the current task
+2. Push the stack pointer on the TCB of the current task
+3. Load the stack pointer from the TCB of the new task
+4. Load the registers and variables stored on the new task's stack
+
+Some operating systems allow tasks to be interrupted by other more important
+tasks. This is called a **preemptive** context switching and is the dominant
+mechanism used in RTOS. The other type of switching is called **cooperative**
+and in this case the task must explicitly release the CPU before another task
+can take control.
+
+==== Multi-process model
+
+For multiprocessor systems each process has its own address space and cannot
+address the memory of the other processes. The context switch requires the
+re-configuration of a special chip called MMU (Memory Management Unit). The
+role of the MMU is to map the process address space to the address space of
+the physical memory.
+
+```text
+TODO: Picture with an explanation how the MMU works
+```
+
+==== Lightweight process model
+
+The multi-process model is much more complex and time consuming and thus not
+very useful for RTOS. If a MMU is present, the RTOS might use only to protect
+other memory areas from being accessed by the current task. This model is
+also called **"Thread Protected Mode"** or **"Lightweight Process Model**".
+
+```text
+TODO: Picture to illustrate how to use MMU to protect memory areas
+```
+
+
+== 4. Concurrency Issues
+
+// ============================================================================
+
+=== Race conditions
+
+image::assets/OS-Race-Conditions.png[OS-Race-Conditions]
 
 ==== Scenario
-In concurrent systems taks can request shared resources at the same time,
-such as the printer or the hard drive. For example it is impossible to print
-text from two tasks, because the printed document will be a random sequence
-of characters depending on when the tasks access the printer. Such scenarios
-are called **race conditions**.The operating systems proivides special
-mechanisms to prevet such conditions.
+
+Very often a resource cannot be shared and must be used by only one task in
+order to produce a correct result. For example if several tasks require the
+printer then the result will be often a random sequence of characters
+depending on the scheduled execution of the tasks.
+
+The most common code patterns associated with race coditions are...
+
+- Check then act
+- Read-Modify-Write
+- Lazy initialization
 
 ==== Solution
-Use OS services to lock shared resources so that they can be used only by a
-limited number of tasks. Such services are the mutex, semaphores and
-reader-writer locks.
 
+To avoid race conditions we must define the access to the shared resource is
+to define a critical section, which will not be accessed by any other tasks.
+Critical sections can be defined by using **semaphores** or **mutexes**. The
+disadvantage of this approach is the impact on the performance.
+
+
+// ============================================================================
 
 === Deadlock
 
 ==== Scenario
 
-A deadlock situation on a resource can arise if and only if all of the
+A deadlock situation on a shared resource can arise if and only if all of the
 following conditions occur simultaneously in a system (Coffman coditions) ...
 
-- Mutual exclusion : At least one resource uses mutual exclusion
-- Hold and wait : A process is holding a resource and waiting for resources used
-by other processses
-- No preemption : A resource can be released only voluntarily by the process
-holding it
-- Circular wait : Each process must be waiting for a resource being held by
+1. Mutual exclusion : At least one resource uses mutual exclusion
+2. Hold and wait : A process is holding a resource and waiting for resources
+used by other processses
+3. Circular wait : Each process must be waiting for a resource being held by
 another process
+4. No preemption : A resource can be released only voluntarily by the process
+holding it
+
 
 ==== Solution
 
-Prevention
+===== Deadlock Prevention
+The deadlock prevention means simply that one of the Coffman condition must be
+broken.
 
-- Task priority and preemption
-- Lock ordering
+===== Deadlock Avoidance
+The operating system will not allocate resources which will lead to the deadlock situation.
 
-Avoidance
+Banker, Dijsktra, Resource hierarchy, Arbitrator
 
-- Break one of the deadlock conditions
-- Dijkstra's solution
-- Resource hierarchy solution
-- Arbitrator solution
+===== Deadlock Detection
+The deadlock is allowed but the operating system is able to detect it and
+recover from it.
+
+===== Mutual exlusion algorithms
+The mutual exlusion algorithms are Dekker, Peterson, Lamport, Szymanski,
+Taubenfeld, Maekawa and others.
+
+
+// ============================================================================
 
 === Starvation
 
-Starvation is a problem encountered in concurrent computing where a process
-is perpetually denied necessary resources to process its work.
-
 ==== Scenario
 
-- High priority tasks run frequently
+Starvation is a problem encountered in concurrent computing where a process
+is perpetually denied necessary resources to process its work. The priority
+scheduling is a typical scenario where this situation might occur. It involves
+one or more high priority tasks which run frequently.
 
 ==== Solution
 
 - Task aging technique
 - Delay in high priority tasks
+
+// ============================================================================
 
 === Priority inversion
 
@@ -331,7 +418,7 @@ is perpetually denied necessary resources to process its work.
 
 Priority inversion is a scenario in scheduling in which a high priority task
 is indirectly superseded by a lower priority task effectively inverting the
-assigned priorities of the tasks. A typical exapmple of priority inversion is
+assigned priorities. A typical exapmple of priority inversion is
 when several tasks with different priority levels use semaphores and try to
 access the CPU ...
 
@@ -376,13 +463,16 @@ image::assets/OS-PriorityInheritance.png[Priority inheritance]
 
 
 
-== Task synchronization
+== 5. Synchronization Objects
 
-``
-TODO: Picture with some race conditions examples
-``
+=== Signal
 
-=== 6.1 Semaphore
+=== Event
+
+Events are similar to interrupts in the sense that they are a signaling
+mechanism.
+
+=== Semaphore
 
 Semaphore is an integer variable which is used as a **signaling mechanism**
 to allow a process to access the critical section of the code or certain
@@ -406,14 +496,14 @@ available
 2. **Counting** - A counting semaphore stores the number of free instances of
 said resource and blocks until an instance becomes available.
 
-=== 6.2 Mutex
+=== Mutex
 
 A mutex or the mutual exclusion service is a special type of **locking
 mechanism** which resembles the binary semaphore. It implements additionally
 an algorithm called **priority inheritance** to solve a common problem of
 semaphores called **priority inversion**.
 
-=== 6.3. Lock
+=== Lock
 
 A reader-writer lock allows simultaneous access for read-only operations
 while write operations require exclusive access.
@@ -422,16 +512,7 @@ Multiple tasks can read at the same time, but a writing task will block
 others from reading or writing. A readers-writer block can also be
 implemented using semaphores and mutexes.
 
-=== 6.4. Event
-
-Events are similar to interrupts in the sense that they are a signaling
-mechanism.
-
-
-
-== Task communication
-
-=== 7.1 Mailbox
+=== Mailbox
 
 - A mailbox is a **message buffer** managed by the RTOS.
 - The messages have **fixed data size** and are usually small.
@@ -443,7 +524,7 @@ amount of time or until a message arrives.
 scheduler determines if a task switching must be done, according to the
 priority of the running task and the task waiting for a message
 
-=== 7.2 Queues
+=== Queues
 
 - Queues are **message buffers**
 - Queues accept **messages of different lengths**.
@@ -455,7 +536,15 @@ amount of time or until a message arrives.
 scheduler determines if a task switching must be done, according to the
 priority of the running task and the task waiting for a message
 
-== Memory management
+
+
+== 6. Concurrency Models
+
+=== Event-based Model
+=== Actor-based Model
+
+
+== 7. Memory management
 
 ```commandline
 TODO: Image of the points below
@@ -474,20 +563,24 @@ TODO: Image of the points below
 - Take a look at a program (for example .com, .exe or .elf)
 - Explain how the program is loaded in to the memory
 
-== Boot process
+
+== 8. Boot process
+
 
 After reset the CPU always jumps to a predefined address and starts the
-execution from there. The program found there is called the startup code. It
-initializes the memory and for simple operating systems the next step is to
-call the main function. The main function will the further initialize the
-operating system, the hardware, create application tasks and then transfer
-control to the scheduler.
+execution from there. Typically the instruction found at this address is a
+simple jump to the bootloader code.
+
+The bootloader initializes the memory and for simple operating systems the next
+step is to call the main function. The main function will the further
+initialize the kernel, the hardware, create application tasks and
+then transfer control to the scheduler.
 
 ```commandline
 TODO: Boot process visualization
 ```
 
-== Best practices
+== 9. Best practices
 
 - Each task is to be considered an application of its own
 - Initialize shared resources before task creation
@@ -534,8 +627,34 @@ void main(void) {
 }
 ```
 
+== 10. Exercises
+
+=== Installation
+
+=== Program models
+==== Single loop
+==== Main loop and ISR
+==== RTOS and Tasks
+
+=== Task Objects
+==== Semaphore
+==== Mutex
+==== Signal
+==== Event
+
+=== Concurrency issues
+==== Race Conditions
+==== Deadlock
+==== Starvation
+==== Priority inversion
+
+=== GPIO
+=== Ethernet
+=== Debug
+
 == References
 
+- <https://www.ni.com/en-rs/innovations/white-papers/07/what-is-a-real-time-operating-system--rtos--.html>
 - <https://www.youtube.com/playlist?list=PLEBQazB0HUyQ4hAPU1cJED6t3DU0h34bz>
 - <https://www.tutorialspoint.com/operating_system/os_process_scheduling_algorithms.htm>
 - <https://data-flair.training/blogs/scheduling-algorithms-in-operating-system/>
@@ -549,3 +668,15 @@ void main(void) {
 - <https://en.wikipedia.org/wiki/Synchronization_(computer_science>)
 - <https://www.microcontrollertips.com/three-rtos-basics-what-when-and-how/>
 - <https://www.renesas.com/eu/en/software-tool/hw-rtos/hw-rtos-concept>
+- <https://medium.com/@ianjuma/the-actor-model-in-python-with-gevent-b8375d0986fa>
+- <https://en.wikipedia.org/wiki/Concurrent_computing>
+- <https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.64.5120>
+- <https://preshing.com/20120612/an-introduction-to-lock-free-programming/>
+- <https://www.baeldung.com/concurrency-principles-patterns>
+- <https://www.oreilly.com/library/view/the-art-of/9780596802424/ch04.html>
+- <https://www.brianstorti.com/the-actor-model>
+- <https://en.wikipedia.org/wiki/Actor_model>
+- <https://en.wikipedia.org/wiki/Concurrent_computing>
+- <https://en.wikipedia.org/wiki/Mutual_exclusion>
+- <https://en.wikipedia.org/wiki/Dekker%27s_algorithm>
+
