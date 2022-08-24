@@ -177,6 +177,8 @@ The process of sharing one CPU among many tasks and thus creating the
 illusion of parallel work is called **concurrent execution**. The process of
 running tasks on multiple processors is called **parallel executuion**.
 
+image::assets/OS-Concurrent-vs-Parallel.png[]
+
 === Task States
 
 The minimum set of states in typical task state model consists of
@@ -345,13 +347,26 @@ depending on the scheduled execution of the tasks.
 The most common code patterns associated with race coditions are...
 
 - Check then act
+
+[source,Python]
+----
+if(vector.contains(e)):     # Check
+    vector.remove(e)        # Act
+----
+
 - Read-Modify-Write
-- Lazy initialization
+
+[source,Python]
+----
+def modify_counter():
+    counter += 1
+----
+
 
 ==== Solution
 
 To avoid race conditions we must define the access to the shared resource is
-to define a critical section, which will not be accessed by any other tasks.
+to define a critical section, which cannot be intterupted by other tasks.
 Critical sections can be defined by using **semaphores** or **mutexes**. The
 disadvantage of this approach is the impact on the performance.
 
@@ -543,8 +558,9 @@ priority of the running task and the task waiting for a message
 === Event-based Model
 === Actor-based Model
 
+== 7. Concurrency Patterns
 
-== 7. Memory management
+== 8. Memory management
 
 ```commandline
 TODO: Image of the points below
@@ -564,7 +580,7 @@ TODO: Image of the points below
 - Explain how the program is loaded in to the memory
 
 
-== 8. Boot process
+== 9. Boot process
 
 
 After reset the CPU always jumps to a predefined address and starts the
@@ -580,7 +596,7 @@ then transfer control to the scheduler.
 TODO: Boot process visualization
 ```
 
-== 9. Best practices
+== 10. Best practices
 
 - Each task is to be considered an application of its own
 - Initialize shared resources before task creation
@@ -627,7 +643,7 @@ void main(void) {
 }
 ```
 
-== 10. Exercises
+== 11. Exercises
 
 === Installation
 
@@ -654,29 +670,43 @@ void main(void) {
 
 == References
 
-- <https://www.ni.com/en-rs/innovations/white-papers/07/what-is-a-real-time-operating-system--rtos--.html>
-- <https://www.youtube.com/playlist?list=PLEBQazB0HUyQ4hAPU1cJED6t3DU0h34bz>
-- <https://www.tutorialspoint.com/operating_system/os_process_scheduling_algorithms.htm>
-- <https://data-flair.training/blogs/scheduling-algorithms-in-operating-system/>
-- <https://digital.com/program-your-own-os/>
-- <https://littleosbook.github.io/>
-- <https://www.geeksforgeeks.org/mutex-vs-semaphore/>
-- <https://www.beningo.com/5-best-practices-for-designing-rtos-based-applications/>
-- <https://kb.hilscher.com/display/GPS/Job-Worker+Task+Model>
-- <https://en.wikipedia.org/wiki/Booting>
-- <https://webeduclick.com/windows-2000-threads-and-smp-management>
-- <https://en.wikipedia.org/wiki/Synchronization_(computer_science>)
-- <https://www.microcontrollertips.com/three-rtos-basics-what-when-and-how/>
-- <https://www.renesas.com/eu/en/software-tool/hw-rtos/hw-rtos-concept>
-- <https://medium.com/@ianjuma/the-actor-model-in-python-with-gevent-b8375d0986fa>
-- <https://en.wikipedia.org/wiki/Concurrent_computing>
-- <https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.64.5120>
-- <https://preshing.com/20120612/an-introduction-to-lock-free-programming/>
-- <https://www.baeldung.com/concurrency-principles-patterns>
-- <https://www.oreilly.com/library/view/the-art-of/9780596802424/ch04.html>
-- <https://www.brianstorti.com/the-actor-model>
-- <https://en.wikipedia.org/wiki/Actor_model>
-- <https://en.wikipedia.org/wiki/Concurrent_computing>
-- <https://en.wikipedia.org/wiki/Mutual_exclusion>
-- <https://en.wikipedia.org/wiki/Dekker%27s_algorithm>
+```
+- https://www.ni.com/en-rs/innovations/white-papers/07/what-is-a-real-time-operating-system--rtos--.html
+- https://www.youtube.com/playlist?list=PLEBQazB0HUyQ4hAPU1cJED6t3DU0h34bz
+- https://www.tutorialspoint.com/operating_system/os_process_scheduling_algorithms.htm
+- https://data-flair.training/blogs/scheduling-algorithms-in-operating-system/
+- https://digital.com/program-your-own-os/
+- https://littleosbook.github.io/
+- https://www.geeksforgeeks.org/mutex-vs-semaphore/
+- https://www.beningo.com/5-best-practices-for-designing-rtos-based-applications/
+- https://kb.hilscher.com/display/GPS/Job-Worker+Task+Model
+- https://en.wikipedia.org/wiki/Booting
+- https://webeduclick.com/windows-2000-threads-and-smp-management
+- https://en.wikipedia.org/wiki/Synchronization_(computer_science>)
+- https://www.microcontrollertips.com/three-rtos-basics-what-when-and-how/
+- https://www.renesas.com/eu/en/software-tool/hw-rtos/hw-rtos-concept>
+- https://medium.com/@ianjuma/the-actor-model-in-python-with-gevent-b8375d0986fa
+- https://en.wikipedia.org/wiki/Concurrent_computing
+- https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.64.5120
+- https://preshing.com/20120612/an-introduction-to-lock-free-programming/
+- https://www.baeldung.com/concurrency-principles-patterns
+- https://www.oreilly.com/library/view/the-art-of/9780596802424/ch04.html
+- https://www.brianstorti.com/the-actor-model
+- https://en.wikipedia.org/wiki/Actor_model
+- https://en.wikipedia.org/wiki/Concurrent_computing
+- https://en.wikipedia.org/wiki/Mutual_exclusion
+- https://en.wikipedia.org/wiki/Dekker%27s_algorithm
+- https://medium.com/swlh/getting-started-with-concurrency-in-python-part-i-threads-locks-50b20dbd8e7c
+- https://medium.com/swlh/getting-started-with-concurrency-in-python-part-ii-deadlocks-the-producer-consumer-model-gil-ae28afec3e7e
+- https://medium.com/swlh/getting-started-with-concurrency-in-python-part-iii-multiprocessing-cab0d6b52e3
+- https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html
+- https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/
+- https://jenkov.com/tutorials/java-concurrency/index.html
+- https://www.cs.nott.ac.uk/~pszbsl/G52CON/
+- https://en.wikipedia.org/wiki/Process_calculus
+- https://docs.oracle.com/javase/tutorial/essential/concurrency/
+- https://en.wikipedia.org/wiki/Concurrency_pattern
+- https://randu.org/tutorials/threads/
+- https://www.memorymanagement.org/
 
+```
