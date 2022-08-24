@@ -173,12 +173,6 @@ have their own address space.
 
 image::assets/OS-TaskModel.png[OS-Taskmodel]
 
-The process of sharing one CPU among many tasks and thus creating the
-illusion of parallel work is called **concurrent execution**. The process of
-running tasks on multiple processors is called **parallel executuion**.
-
-image::assets/OS-Concurrent-vs-Parallel.png[]
-
 === Task States
 
 The minimum set of states in typical task state model consists of
@@ -327,6 +321,14 @@ also called **"Thread Protected Mode"** or **"Lightweight Process Model**".
 ```text
 TODO: Picture to illustrate how to use MMU to protect memory areas
 ```
+
+==== Concurrency vs Parallelism
+
+The process of sharing one CPU among many tasks and thus creating the
+illusion of parallel work is called **concurrent execution**. The process of
+running tasks on multiple processors is called **parallel executuion**.
+
+image::assets/OS-Concurrent-vs-Parallel.png[]
 
 
 == 4. Concurrency Issues
