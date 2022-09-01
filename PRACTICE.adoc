@@ -1,0 +1,68 @@
+== 1. Installation
+=== IDE
+=== Toolchain
+=== Drivers
+
+
+== 2. Program models
+=== Single loop
+=== Main loop and ISR
+=== RTOS and Tasks
+
+
+== 3. Synchronziation problems
+=== Race Conditions
+=== Deadlock
+=== Starvation
+=== Priority inversion
+
+== 4. Synchronziation objects
+=== Semaphore
+=== Mutex
+=== Condition
+=== Events
+=== Queue
+
+== 5. Synchronization problems
+
+=== 5.1. Dining philosophers problem
+=== 5.2. Producer-consumer problem
+=== 5.3. Reader-writer problem
+=== 5.4. Sleeping-barber problem
+=== 5.5. Cigarette smokers problem
+=== 5.6. ABA problem
+
+== 6. Study projects
+
+=== Simple protocol stack
+
+Use the the Hilscher Variable Length Protocol to write a simple firmware. It
+shall have all the necessery configuration and communication packets to operate.
+
+
+=== Simple blockchain
+
+Demonstrate the security of blockchain solutions by using the proof of work
+mechanism for embedded systems. Show that the computational power to generate
+the hash is relatively small for small to medium scale systems.
+
+The solution should be able to work with N devices, whereby each device might
+be either a miner, server or client or all at once.
+
+=== Simple packet generator
+
+Use packet interface to configure and enable a packet generator used for stress
+testing of ethernet based protocols. The packet generator will have the
+following packets:
+
+1. Configure the packet generator
+2. Start the packet generator
+3. Stop the packet generator
+
+As part of the configuration we will have a structure, which will contain one
+or more messages to be repeatedly sent. The number of times the packet will be
+sent will be configurable (1, N, indefinite).
+
+The generator might be also configured to create also totally random messages
+as part of a fuzzy testing strategy.
+

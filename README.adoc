@@ -275,7 +275,7 @@ TODO: Image illustrating the TCB and how it is chained
 ```
 
 
-==== 3.4.2. Multi-threaded model
+==== 3.4.2. Switching in the multi-threaded model
 
 In the multi-threading model, which is predominatly used in RTOS the task or
 context switching is simplified the change of one set of CPU register values to
@@ -296,7 +296,7 @@ mechanism used in RTOS. The other type of switching is called **cooperative**
 and in this case the task must explicitly release the CPU before another task
 can take control.
 
-==== 3.4.3. Multi-process model
+==== 3.4.3. Switching in the multi-process model
 
 For multiprocessor systems each process has its own address space and cannot
 address the memory of the other processes. The context switch requires the
@@ -308,7 +308,7 @@ the physical memory.
 TODO: Picture with an explanation how the MMU works
 ```
 
-==== 3.4.4. Lightweight process model
+==== 3.4.4. Switching in the lightweight process model
 
 The multi-process model is much more complex and time consuming and thus not
 very useful for RTOS. If a MMU is present, the RTOS might use only to protect
@@ -332,8 +332,14 @@ image::assets/OS-Concurrent-vs-Parallel.png[800, 600]
 
 Tasks are a very convinient way to modularize the development process and
 optimize the CPU utilization using concurrency. But they also come with a price
-when several tasks have to exchange data. The folliwing sections will describe
-the most common problems when using a shared resource for data exchange.
+when several tasks have to exchange data. The simplest way to achieve this is
+by using the **shared memory model**.
+
+image::assets/OS-Shared Memory.png[800, 600]
+
+The shared memory can represent a counter, which needs to incremented by every
+task or a buffer used to store messages exchanged by the tasks. Each of the
+problems described in this chapter arise when using the shared memory model.
 
 // ============================================================================
 
@@ -346,23 +352,28 @@ execution of the tasks.
 
 A similar example can be given with a shared variable instead of a printer.
 Let's assume that a task must write a value to a counter variable, which will
-be shared among 2 tasks. As in the printer scenario a task actually might
-overwrite the value of the shared counter. This depends on the offset in the
-execution time of the tasks.
+be shared among several tasks. As in the printer scenario, a task might actually
+produce an invalid value depending on the offset in the execution time of the
+tasks.
 
 image::assets/OS-Race-Conditions-1.png[800, 600]
 
-The example with the counter shows a very general situation how race conditions
-might occur. It happens when the process of changing the variable is not
-atomic, meaning it is not executed in one processor cycle. In our case we have
-3 operations in the task: **read, modify and then write**.
+The counter is supposed to be incremented 4 times but due to task interleaving
+the final values is incorrect. The main problem appears to be that the
+several operations are needed to increment the value of the counter and the
+scheduler is not aware of this.
 
-Another possible scenario for race conditions is the *check then act* scenario,
-like in the code below. Again in this context it is not possible to execute the
-code in one processor cycle and it is very probable that race conditions might
-occur.
+This is a problem if **atomicity** meaning the operations cannot be executed in
+one processor cycle. This is a very common situation and one of the main reasons
+why race conditions occur. In the example above 3 operations are needed to
+update the value of the counter: **read, modify and write**.
 
-image::assets/OS-Race-Conditions-2.png[640, 480]
+Another possible context for race conditions is the **read, check and act**
+scenario. In the example below the second task will be terminated by an
+exception as Task B will try to remove an element from the global list, which
+was already removed by task A in the previous cycle.
+
+image::assets/OS-Race-Conditions-2.png[800, 600]
 
 To avoid race conditions we must define the access to the shared resource is
 to define a critical section, which cannot be interrupted by other tasks.
@@ -370,54 +381,307 @@ Critical sections can be defined by using **locks**, **semaphores** or
 **mutexes**. The disadvantage of this approach is the impact on the performance
 as the critical section can be used only by one task.
 
-Another possible solution is to avoid shared memory altogether. An alternative
-might be to re-design the software to use concurrent programming models such
-as the **actor-based model**, which will be discussed in a separate document.
-It must be noted though that the actor-based model is the foundation of many
-formal tools used to analyze concurrent systems such as Petri-Nets, Pi-Calculus,
-I/O automaton and others.
+image::assets/OS-Race-Conditions-3.png[800, 600]
+
+A second option would be to refactor the code to use a local resource instead of
+a shared one. This technique is also called **state separation**. In this case
+object oriented programming is very useful as objects can store local data.
+This will avoid the critical section and this increase the program efficiency.
+
+Additionally the objects might exchange information by using the message
+passing technique. For example an object might broadcast its state on an event
+and other objects might act accordingly. The processes as in  It is the
+foundation of many formal modles used to analyze concurrent systems such as
+the **actor modell**, **pi-calculus** and others.
+
+For example the number Pi might be approximated using random numbers. The more
+numbers are generated the better the approximation will be. The formula for the
+approximation is **pi = 4 * (i / n)**, where i is the number of point in the
+circle with radius 1 and n the total number of points generated.
+
+image::assets/OS-Monte-Carlo.png[600, 400]
+
+**Solution 1** : Shared counters
+
+The first solution to this problem using tasks is to distribute the counter
+generation accross several tasks and use critical sections to protect the
+shared variables i and n. This of course is no better than running a single
+thread and provides no performance improvement.
+
+[source, python]
+----
+import random
+import os
+import math
+import threading
+
+inside = 0
+total = 0
+
+
+def generate_points(iterations):
+
+    i = 0
+    n = 1
+    for n in range(1, iterations + 1):
+        x = random.uniform(-1, 1)
+        y = random.uniform(-1, 1)
+        r = math.sqrt(x ** 2 + y ** 2)
+        if r <= 1:
+            i += 1
+
+    global inside
+    inside = i
+
+    global total
+    total = n
+
+
+def calc_pi():
+    pi = 4 * float(inside) / float(total)
+    print(pi)
+
+
+threads = []
+for _ in range(os.cpu_count()):
+    t = threading.Thread(target=generate_points, args=[10000, ])
+    t.start()
+calc_pi()
+----
+
+**Solutuon 2**: Separate state through objects
+
+A second options would be to change the calculation model. When we look at the
+formula we see that pi can be split without relying on a shared state. The
+formula can be changed to **pi = 4 * (i1 + ... + ik) / (n1 + ... + nk)**. This
+means that we can create k threads and sum their respective values for i and n
+to calculate the value of pi. Thread 1 will generate i1 and n1, thread 2 will
+generate i2 and n2 and so on. When all threads are ready executing the value
+of pi will be calculated with the new formula above.
+
+[source, python]
+----
+import random
+import math
+import threading
+import time
+import os
+
+
+class CalcObject(object):
+
+    def __init__(self, iterations=1000000):
+        self.iterations = iterations
+        self.i = 0
+        self.n = 0
+
+    def generate_points(self):
+
+        i = 0
+        n = 0
+        for n in range(1, self.iterations + 1):
+            x = random.uniform(-1, 1)
+            y = random.uniform(-1, 1)
+            r = math.sqrt(x ** 2 + y ** 2)
+            if r <= 1:
+                i += 1
+
+        self.i, self.n = i, n
+
+
+def main():
+
+    print("Number of CPUs", os.cpu_count())
+
+    threads = []
+    calc_objects = []
+    for _ in range(6):
+
+        calc = CalcObject()
+        t = threading.Thread(target=calc.generate_points)
+
+        threads.append(t)
+        calc_objects.append(calc)
+
+    start_time = time.time()
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    end_time = time.time()
+    delay = end_time - start_time
+
+    i = 0
+    n = 0
+    pi = 0
+    for o in calc_objects:
+        i += o.i
+        n += o.n
+        pi = 4 * float(i) / float(n)
+
+    print("PI = {0:5f} | I = {1} / {2} | TIME = {3}".format(
+        pi,
+        i,
+        n,
+        delay
+    ))
+
+
+if __name__ == "__main__":
+    main()
+----
+
+The examples above are given in Python. Unfortunately Python will also not
+perform much better than solution 1 as it locks the interpreter though the
+**Global Interpreter Lock (GIL)**. It basically means that only one thread can
+be executed on a single processor. This makes threads in Python more suitable
+for tasks requiring long waiting, for example user input or data from the
+network. There are some third party libraries which can circumvent the usage
+of the GIL lock. One of them is **Numba** which comes with a
+**Just-In-Time (JIT)** compiler.
+
+[source, python]
+----
+import random
+import math
+import threading
+import time
+import os
+from numba import jit
+
+
+class CalcObject(object):
+
+    def __init__(self, iterations=1000000):
+        self.iterations = iterations
+
+        self.i = 0
+        self.n = 0
+        self.pi = 0
+        self.delay = 0
+
+    def generate_points(self):
+        self.i, self.n, self.pi = self.generate_points_static(self.iterations)
+
+    @staticmethod
+    @jit(nopython=True, nogil=True)
+    def generate_points_static(iterations):
+
+        i = 0
+        n = 0
+        for n in range(1, iterations + 1):
+            x = random.uniform(-1, 1)
+            y = random.uniform(-1, 1)
+            r = math.sqrt(x ** 2 + y ** 2)
+            if r <= 1:
+                i += 1
+
+        pi = 4 * (i / n)
+        return i, n, pi
+
+
+def main():
+
+    print("Number of CPUs", os.cpu_count())
+
+    threads = []
+    calc_objects = []
+    for _ in range(os.cpu_count()):
+
+        calc = CalcObject()
+        t = threading.Thread(target=calc.generate_points)
+
+        threads.append(t)
+        calc_objects.append(calc)
+
+    time_start = time.time()
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    time_end = time.time()
+    delay = time_end - time_start
+
+    i = 0
+    n = 0
+    pi = 0
+    for o in calc_objects:
+        i += o.i
+        n += o.n
+        pi = 4 * float(i) / float(n)
+
+    print("PI = {0:5f} | I = {1} / {2} | TIME = {3}".format
+        (pi, i, n, delay)
+    )
+
+
+if __name__ == "__main__":
+    main()
+----
+
+
+**Solutuon 3**
+
+In this solution the calculation will be distrubuted among several processors.
+They might be on the same machine or physically separated. The initiator will
+send a message to the processors to start the calculation. When a processor
+finishes its work it will send a message to all the participants to update their
+counters and that it ended its operations. When all the processors sent messages
+that indicate end of operation, then the initiator will take the result from the
+last processor. There are several protocls, which are very suitable for message
+passing concurrency such as **MQTT**. A notable framework using this protocl is
+**RabbitMQ**.
+
+image::assets/OS-Race-Conditions-4.png[800, 600]
 
 // ============================================================================
 
 === 4.2. Mutual exclusion
 
-In the previous section it was mentioned, that there are special synchrinzation
-objects used to solve the race condition problem. Some of these objects are
-for example sempahores and mutexes. These are just different types of
-implementation trying to solve the mutual exclusion problem.
+In the previous section it was mentioned, that there are special synchronization
+objects used to solve the race condition problem by defining a critical section.
+These objects generally solve the **mutual exculsion problem**.
 
 By definition mutual exclusion guarantees that one thread never enters a
 critical section while another thread is using it. The requirement of mutual
 exclusion to solve race conditions on shared data was first defined by Dijsktra.
-Dijkstra is also the first to propose a solution called **semaphore**.
+He is also the first to propose a solution called **semaphore**.
 
-Processes requiring mutual exclusion can be divided in several parts. It is
-obligatory to access the shared resource always using a mutual exclusion
-algorithm and to release the resource after the work is done in the critical
-section. A simple cycle diagram illustrating this is given below.
+Processes requiring mutual exclusion have several parts. It is obligatory to
+access the shared resource always using a mutual exclusion algorithm and to
+release the resource after the work is done in the critical section. A simple
+diagram illustrating this is given below.
 
 image::assets/OS-Mutual-Exclusion.png[]
 
-First the process will enter the **non-critical section**, which will not have
-any calls to the shared resource. At a certain point of time the process will
-need to access the shared resource and it will call a special function, which
-will try to claim the exclusive rights. If the exclusivity can be guaranteed
-then the process continues to the **critical section**, where it performs
-operations on the shared resource. After this the process must leave the
-critical section and release the resource. In practice it is desirable to
-implement the critical section to execute as fast as possible.
+First the process will enter the **non-critical section**. At a certain point
+of time the process will need to access the shared resource and it will call a
+special function, which will try to claim the exclusive rights.
+
+If the exclusivity can be guaranteed then the process continues to the
+**critical section**, where it performs operations on the shared resource.
+After this the process must leave the critical section and release the resource.
+In practice it is desirable to implement the critical section to execute as
+fast as possible.
 
 The simplest solution of the mutual exclusion problem is to disable all
-interupts for crticial sections. This can be though only applied on single
+interupts for the crticial section. This can be though only applied on single
 processor systems and has the disatvantage of introducing non-determinism,
 which can be a serious issue for real-time operating systems.
 
 The next best implementation is based on hardware and uses the **busy-waiting**
-technique combined with special processor instructions, which are atomic by
-nature and cannot be interrupted.
+technique combined with special **atomic processor instructions**. These
+instructions cannot be interrupted and usually require one processor cycle to
+be executed.
 
-There are also many software solutions, which typically use the busy-waiting
-technique. The follwing algorithms are recommended for further reading:
+There are also several algorithms solving the mutual exclusion problem, which
+typically use the busy-waiting technique. The follwing algorithms are
+recommended for further reading:
 
 - Dekker's Algorithm
 - Peterson's Algorithm
@@ -425,9 +689,9 @@ technique. The follwing algorithms are recommended for further reading:
 - Szymanski's Algorithm
 - Maekawa's Algorithm
 
-A developer typically will use and understand the solutions provided by the
-operating system as they are omptimized and often solve some additional problems
-arising during thread synchronization.
+A developer will typically use the solutions provided by the operating system
+as they are omptimized and often solve some additional problems arising during
+thread synchronization.
 
 // ============================================================================
 
@@ -435,22 +699,23 @@ arising during thread synchronization.
 
 After solving the problem with race conditions and mutual exclusion, another
 problem might arise when using synchroinziation objects such as mutexes or
-semaphores. This is the problem of deadlock and it is usually present when
-several tasks of the same priority use a group of shared resources. In the
-worst case all the processes will lock each other and wait an indefinite time
-for the resources to be freed.
+semaphores. In some special instances when multiple tasks lock multiple
+shared resources and form a lock loop waiting for each. In real life these
+problems are often know as *the chicken or the egg* problem.
+
+The illustration below demonstrates a typical deadlock scenario. We have an
+elevator, which for simplicity can be used only in one direction and must be
+shared between two persons. Each one of them wants to go to a specific floor and
+do their work.
 
 image::assets/OS-Deadlock-1.png[]
 
-The illustration above demonstrates a typical deadlock scenario. We have an
-elevator, which for simplicity can be used only in one direction and must be
-shared between two persons. Each one of them wants to go to a specific floor and
-do some work. Let's suppose the two person enter the elevator at the same time
+Let's suppose the two person enter the elevator at the same time
 and behave selfishly. The person called Branko will press the up button to start
 the elevator, but Mitko being selfish will press the stop button, because he
 thinks he has higher priority. Branko of course will not release the up button
-because he too thinks he has higher priority. In this scenario both persons will
-stay blocked indefinitely.
+because he thinks too he has thehighest priority. In this scenario both persons
+will stay blocked indefinitely.
 
 Based on the example above, the formal definition of a deadlock is a situation
 on a shared resource that can arise if and only if all of following conditions
@@ -466,11 +731,11 @@ another process
 
 ==== 4.2.1. Deadlock prevention
 
-If we take the scenario above one way to break the Coffman conditions is one
-of the persons to give up after a certain time. This is the equivalent of
-breaking the hold and wait from the Coffman conditions (2). It is thus
-recommended always to used **lock timeout** whenever the operating system
-allows it.
+If we take the scenario above one way to break the Coffman conditions is to make
+one or more persons less selfish and so one of them go up after a certain time.
+This is the equivalent of breaking the hold and wait from the Coffman
+conditions (2). It is thus recommended always to used **lock timeout** if the
+operatings system or the compiler supports it.
 
 image::assets/OS-Deadlock-2.png[]
 
@@ -480,46 +745,49 @@ situation is always first to press the direction button and then the stop
 button. In this scenario when both person enter the elevator, the first one
 pressing the up button will be also the one pressing the stop button. This
 scenario breaks the circular wait (4) from the Coffman conditions. It is also
-called a **resource hierarchy** protocol.
+a form of a **resource hierarchy** protocol.
 
 image::assets/OS-Deadlock-3.png[]
 
-A third solution would be to use a third person to operate the elevator. For
-simplicity it will service the persons based on their arrival time. If in the
-example arrives first and the Mitko, then the operator will first go to the
-floor required by Branko and then Mitko. The elevator operator formally is also
-called the **arbitrator**.
+A third solution would be to use an intermediate person to operate the elevator.
+For simplicity it will service the persons based on their arrival time. If in
+the example arrives first and the Mitko, then the operator will first go to the
+floor required by Branko and then Mitko. The elevator operator formally is known
+formally as the **arbitrator**. It also breaks the circular wait condition (4).
 
 image::assets/OS-Deadlock-4.png[]
 
-There process of breaking one of the Coffman conditions is called **deadlock
-prevention**. There is also a solid fundamental research on deadlock prevention
-using a generalized deadlock problem called the **dining philosophers problem**.
+All of the examples above tried to break one of the Coffman condiotns. Every
+solution which achieves this is also called a **deadlock prevention** algorithm.
+There is also a solid fundamental research on this topic using a more
+generalized example called the **dining philosophers problem**.
 
 image::assets/OS-Deadlock-Dining-Philosophers.png[]
 
-This problem is used to find a general solution to the deadlock problem for N
-processes . In the example above the forks are the shared resource and the
-plate in front of the philisophers is the critical section. The philosophers
-can either think or eat. Edger Dijkstra, William Stallings and Chandy and Misra
-proposed alternative solutions to the generalized problem.
+In the example above the forks are the shared resource and the plate in front
+of the philisophers is the critical section. The philosophers can either think
+or eat. Edger Dijkstra, William Stallings and Chandy and Misra proposed
+effective solutions to the this problem.
 
 ==== 4.2.2. Deadlock detection and avoidance
 
 Another way eliminate a deadlock is to ensure that resources are allocated
-in such a way that no deadlock can occur. In this case the operating system
-must continuously monitor the current system state and determine whether a
-deadlock can occur. This process is called **deadlock avoidance**. Notable
-examples here are the **Resource Allocation Graph (RAG)** and **Banker's
+in such a way that a deadlock cannot occur. In this case the operating system
+must continuously monitor the current system state and determine whether with
+the next resource allocation a deadlock is imminent. This process is called
+**deadlock detection and avoidance**.
+
+Notable tools here are the **Resource Allocation Graph (RAG)** and **Banker's
 algorithm**. The disadvantage of this solutions is that the process must
-communicate its resource requirements in advance.
+communicate its resource requirements in advance. The **Abassi RTOS** offers
+this kind of protection.
 
     TODO: Graphic
 
 ==== 4.2.3. Deadlock detection and recovery
 
-The third option is to allow deadlocks, detect them and implement a strategy
-to recover. This process is called **deadlock detection and recovery**.
+The third option is to allow deadlocks, detect them and implement a recovery
+strategy. This process is called **deadlock detection and recovery**.
 The most common detection algrorithms are the **Wait-For-Graph** and the
 **Safety Algorithm**. The deadlock recovery can be optimistic where one or more
 resource will be preempted and allocated to other processes or pessimistic
@@ -534,74 +802,71 @@ where the OS will terminate one or in the worst case all tasks.
 Starvation is a problem encountered in concurrent computing where a process
 is perpetually denied necessary resources to process its work. The priority
 scheduling is a typical scenario where this situation might occur. It involves
-one or more high priority tasks which run frequently. The difference between
-starvation and deadlock is that starvation means that the process will gain
-control after a long time.
+one or more high priority tasks which run frequently and hinder other low
+priority to run. The difference between starvation and deadlock is that
+starvation usually means gaining control after a long time but not indefinite.
 
-    TODO: Graphic
+The solution to the starvation problem is pretty straightforward. For one a
+a minimal delay in the high priority tasks will allow other tasks to regain
+control sooner.
 
-The solution to the starvation problem is pretty straightforward. One way to
-achive this is by adding a small delay in the high priority tasks. Another
-solution is to use the so called  **task aging technique**. It queues all tasks
-requiring access to the resource. The longer the tasks stays in the queue the
-higher its priority will become until it takes control.
+    TODO: Show diagram with the scheduler to illustrate the delay solution
 
-    TODO: Graphic
+Another solution is to use the so called **task aging
+technique**. The OS queues all tasks requiring access to the resource. The
+longer the tasks stays in the queue the higher its priority will become until
+it takes control.
+
+image::assets/OS-Taks-Aging.png[800, 600]
 
 // ============================================================================
 
 === 4.5. Priority Inversion
 
 Priority inversion is a scenario in scheduling in which a high priority task
-is indirectly superseded by a lower priority task effectively inverting the
-assigned priorities. A typical exapmple of priority inversion is
-when several tasks with different priority levels use semaphores and try to
-access the CPU ...
+is indirectly superseeded by a lower priority task effectively inverting the
+assigned priorities. The illustration below exemplifies a typical situation
+with priority inversion.
 
-image::assets/OS-Priority-Inversion.png[640, 480]
+image::assets/OS-Priority-Inversion.png[800, 600]
 
-1. A Low Priority Task (LP Task) owns a semaphore for accessing a given resource
-2. A High Prioriy Task (HP Task) waits for a resource currently owned by the
-LP Task
-3. A Medium Priority Task (MP Task) becomes ready-to-run (after an event
-occurs or a delay passes) and preempts the LP Task.
+1. A Low Priority Task (LP Task) owns a resource
+2. A High Prioriy Task (HP Task) waits for the resource taken the the LP task
+3. A Medium Priority Task (MP Task) becomes ready and preempts the LP Task.
 4. The MP Task completes execution.
 5. The LP Task resumes
 6. The LP Task finishes using the resouce and releases the semaphore
 7. The HP Task acquires the semaphore and resumes
 
-In this situation the priority of the HP Task is essentially reduced to that
-of the LP Task that it waits for to finish using a resource. Because of that
-the HP Task gets unnecessarily delayed.
+In the scenario above the MP basically preempted the HP tasks. It appears as if
+the priority of the HP and LP task are the same.
 
-A mutex would elevate the priority of the LP task to that of the HP task.
-In this way the medium priority task will not be scheduled for execution
-while the mutex is acquired. This mechanism is also called priority inheritance.
+There are several solutions of the problems described above. For example some
+operating systems implement the **priority inheritance** technique.
 
-image::assets/OS-Priority-Inheritance.png[640, 480]
+image::assets/OS-Priority-Inheritance.png[800, 600]
 
-1. A Low Priority Task (LP Task) owns a mutex for accessing a given resource
-2. A High Prioriy Task (HP Task) waits for a resource currently owned by the LP Task
+1. A Low Priority Task (LP Task) acquires a resource
+2. A High Prioriy Task (HP Task) waits for the resource from the LP task
 3. The priority of the LP task is elevated to that of the HP task
 4. A Medium Priority Task (MP Task) becomes ready
 5. The LP Task is temporary with higher priority and resumes
-6. The LP Task finishes using the resource and releases the mutex
-7. The HP Task acquires the mutex and resumes
-8. The HP Task finishes using the resource and releases the mutex
-9. The MP Task is scheduled for execution
-
-
-=== 4.6. Other problems
-
-==== 4.6.1. Producer-consumer problem
-==== 4.6.2. Reader-writer problem
-==== 4.6.3. Sleeping-barber problem
-==== 4.6.4. ABA problem
+6. The LP Task finishes using the resource and release the mutex
+7. The LP Taks has its original priority restored
+8. The HP Task acquires the resource and resumes
+9. The HP Task finishes using the resource and releases the mutex
+10. The MP Task is scheduled for execution
 
 
 == 5. Synchronization Objects
 
-=== Semaphore
+=== 5.1. Flag, Signal or Event
+
+Flags, signal or events are used to control the program flow and do not define
+critical sections. They represent just a simple way of intertask synchronizing
+the tasks program flow.
+
+=== 5.2. Semaphore
 
 Semaphore is an integer variable which is used as a **signaling mechanism**
 to allow a process to access the critical section of the code or certain
@@ -623,7 +888,7 @@ semaphore. **Binary semaphores** are used to access a single resource, while
 **counting semaphroes** stores the number of free instances of a said resource
 and blocks until an instance becomes available.
 
-=== Mutex
+=== 5.3. Mutex
 
 A mutex or the mutual exclusion service is a special type of **locking
 mechanism** which is based on the binary semaphore. Instead of using the
@@ -635,7 +900,7 @@ It also implements an algorithm called **priority inheritance** to solve a
 common problem of semaphores called **priority inversion**.
 
 
-=== Condition variable
+=== 5.4. Condition variable
 
 Condition variables will usually wait until something is true and then gain
 exclusive access to a shared resource. It can be tought as a combination of
@@ -643,13 +908,7 @@ a flag and a mutex object. It is usually used to synchronize access to a
 shared queue and thus solving the reader-writer problem.
 
 
-=== Flag, Signal and Event
-
-Flags, signal or events are used to control the program flow and do not define
-critical sections. They represent just a simple way of intertask synchronizing
-the tasks program flow.
-
-=== Mailbox
+=== 5.5. Mailbox
 
 - A mailbox is a **message buffer** managed by the RTOS.
 - The messages have **fixed data size** and are usually small.
@@ -661,7 +920,7 @@ amount of time or until a message arrives.
 scheduler determines if a task switching must be done, according to the
 priority of the running task and the task waiting for a message
 
-=== Queue
+=== 5.6. Queue
 
 - Queues are **message buffers**
 - Queues accept **messages of different lengths**.
@@ -673,7 +932,7 @@ amount of time or until a message arrives.
 scheduler determines if a task switching must be done, according to the
 priority of the running task and the task waiting for a message
 
-=== RWLock
+=== 5.7. RWLock
 
 A reader-writer lock allows simultaneous access for read-only operations
 while write operations require exclusive access.
@@ -683,14 +942,16 @@ others from reading or writing. A readers-writer block can also be
 implemented using semaphores and mutexes.
 
 
-=== Spinlock
+=== 5.8. Spinlock
 
 Spinlocks are similar to locks but the thread is not suspended. They are useful
 to reduce the rescheduling and context switch overhead and mostly useful for
 threads which are expected to be interrupted for only a short period of time.
 
+=== 5.9. Barrier
 
-== 8. Memory management
+
+== 6. Memory management
 
 ```commandline
 TODO: Image of the points below
@@ -709,7 +970,7 @@ TODO: Image of the points below
 - Take a look at a program (for example .com, .exe or .elf)
 - Explain how the program is loaded in to the memory
 
-== 10. Best practices
+== 7. Best practices
 
 - Each task is to be considered an application of its own
 - Initialize shared resources before task creation
@@ -756,84 +1017,90 @@ void main(void) {
 }
 ```
 
-== 11. Exercises
-
-=== Installation
-
-=== Program models
-==== Single loop
-==== Main loop and ISR
-==== RTOS and Tasks
-
-=== Task Objects
-==== Semaphore
-==== Mutex
-==== Signal
-==== Event
-
-=== Concurrency issues
-==== Race Conditions
-==== Deadlock
-==== Starvation
-==== Priority inversion
-
-=== GPIO
-=== Ethernet
-=== Debug
 
 == References
 
-```
-- https://www.ni.com/en-rs/innovations/white-papers/07/what-is-a-real-time-operating-system--rtos--.html
+=== Books
+- https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/index.html
+- Learning Concurrency in Python
+
+=== Videos
 - https://www.youtube.com/playlist?list=PLEBQazB0HUyQ4hAPU1cJED6t3DU0h34bz
-- https://www.tutorialspoint.com/operating_system/os_process_scheduling_algorithms.htm
-- https://data-flair.training/blogs/scheduling-algorithms-in-operating-system/
+
+=== Operating systems
+- https://www.ni.com/en-rs/innovations/white-papers/07/what-is-a-real-time-operating-system--rtos--.html
 - https://digital.com/program-your-own-os/
 - https://littleosbook.github.io/
-- https://www.geeksforgeeks.org/mutex-vs-semaphore/
-- https://www.beningo.com/5-best-practices-for-designing-rtos-based-applications/
-- https://kb.hilscher.com/display/GPS/Job-Worker+Task+Model
 - https://en.wikipedia.org/wiki/Booting
-- https://webeduclick.com/windows-2000-threads-and-smp-management
-- https://en.wikipedia.org/wiki/Synchronization_(computer_science>)
+- https://www.beningo.com/5-best-practices-for-designing-rtos-based-applications/
 - https://www.microcontrollertips.com/three-rtos-basics-what-when-and-how/
 - https://www.renesas.com/eu/en/software-tool/hw-rtos/hw-rtos-concept>
+- https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/
+
+=== Concurrency
+- https://kb.hilscher.com/display/GPS/Job-Worker+Task+Model
+- https://www.geeksforgeeks.org/mutex-vs-semaphore/
+- https://webeduclick.com/windows-2000-threads-and-smp-management/
+- https://en.wikipedia.org/wiki/Synchronization_(computer_science>)
 - https://medium.com/@ianjuma/the-actor-model-in-python-with-gevent-b8375d0986fa
 - https://en.wikipedia.org/wiki/Concurrent_computing
 - https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.64.5120
-- https://preshing.com/20120612/an-introduction-to-lock-free-programming/
 - https://www.baeldung.com/concurrency-principles-patterns
 - https://www.oreilly.com/library/view/the-art-of/9780596802424/ch04.html
-- https://www.brianstorti.com/the-actor-model
 - https://en.wikipedia.org/wiki/Actor_model
 - https://en.wikipedia.org/wiki/Concurrent_computing
 - https://en.wikipedia.org/wiki/Mutual_exclusion
-- https://en.wikipedia.org/wiki/Dekker%27s_algorithm
+- https://en.wikipedia.org/wiki/Concurrent_computing
+- https://en.wikipedia.org/wiki/Consistency_model
+- https://en.wikipedia.org/wiki/Process_calculus
+- https://en.wikipedia.org/wiki/History_monoid
+- https://en.wikipedia.org/wiki/Petri_net
+- https://en.wikipedia.org/wiki/Synchronization_(computer_science)
+- https://en.wikipedia.org/wiki/Concurrency_pattern
+- https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock
+- https://en.wikipedia.org/wiki/Read-copy-update
+- https://en.wikipedia.org/wiki/Process_calculus
 - https://medium.com/swlh/getting-started-with-concurrency-in-python-part-i-threads-locks-50b20dbd8e7c
 - https://medium.com/swlh/getting-started-with-concurrency-in-python-part-ii-deadlocks-the-producer-consumer-model-gil-ae28afec3e7e
 - https://medium.com/swlh/getting-started-with-concurrency-in-python-part-iii-multiprocessing-cab0d6b52e3
 - https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html
-- https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/
+- https://www.brianstorti.com/the-actor-model
 - https://jenkov.com/tutorials/java-concurrency/index.html
 - https://www.cs.nott.ac.uk/~pszbsl/G52CON/
-- https://en.wikipedia.org/wiki/Process_calculus
 - https://docs.oracle.com/javase/tutorial/essential/concurrency/
-- https://en.wikipedia.org/wiki/Concurrency_pattern
 - https://randu.org/tutorials/threads/
-- https://www.memorymanagement.org/
-- https://en.wikipedia.org/wiki/QP_(framework)
-- https://www.oosmos.com/
 - https://www.baeldung.com/cs/os-deadlock
-- https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/DiningPhil.html
-- https://pages.cs.wisc.edu/~remzi/OSTEP/threads-bugs.pdf
-- https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock
-- https://en.wikipedia.org/wiki/Read-copy-update
 - https://www.baeldung.com/cs/aba-concurrency
 - https://rfc1149.net/blog/2011/01/07/the-third-readers-writers-problem/
 - https://h-educate.in/hardware-solution-to-mutual-exclusion/
 - https://superfastpython.com/thread-producer-consumer-pattern-in-python/
 - https://p2k.unkris.ac.id/IT/3065-2962/semaphores_3956_p2k-unkris.html#:~:text=The%20semaphore%20concept%20was%20invented,a%20variety%20of%20operating%20systems.
+- https://github.com/lievi/dining_philosophers
+- https://gid.wiki/wiki/es/Producer%E2%80%93consumer_problem
+- https://en.wikipedia.org/wiki/Concurrency_pattern
+- https://web.mit.edu/6.005/www/fa14/classes/17-concurrency/
+- https://en.wikipedia.org/wiki/Amdahl%27s_law
+- https://benjiv.com/pi-day-special-2021/
 
-```
+=== Concurrent models
 
-Concurrency patterns, Concurrency models
+- Shared memory
+- Message passing
+    - Parallel workers
+    - Event driven (actor, channel, futures, pipelines, etc.)
+    - Functional programming
+
+
+=== Scheduling algorithms
+- https://data-flair.training/blogs/scheduling-algorithms-in-operating-system/
+- https://www.tutorialspoint.com/operating_system/os_process_scheduling_algorithms.htm
+
+=== Memory management
+- https://www.memorymanagement.org/
+
+=== Frameworks
+- https://en.wikipedia.org/wiki/QP_(framework)
+- https://www.oosmos.com/
+
+=== Others
+- https://en.wikipedia.org/wiki/Object-capability_model
