@@ -32,7 +32,9 @@
 === 5.5. Cigarette smokers problem
 === 5.6. ABA problem
 
-== 6. Study projects
+== 6. Multicore systems
+
+== 7. Study projects
 
 === Simple protocol stack
 

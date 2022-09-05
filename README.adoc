@@ -332,18 +332,46 @@ image::assets/OS-Concurrent-vs-Parallel.png[800, 600]
 
 Tasks are a very convinient way to modularize the development process and
 optimize the CPU utilization using concurrency. But they also come with a price
-when several tasks have to exchange data. The simplest way to achieve this is
-by using the **shared memory model**.
+when several tasks have to exchange data. A brief summary of the most common
+synchronization problems is given below.
+
+image::assets/OS-Synchronization-Problems.png[]
+
+=== 4.1. The Intertask Communication Problem
+
+The first and most important problem arising when using several tasks to
+implement a software product is how to exchange data between the tasks and how
+to control the program flow in case it depends on the state of another task.
+There are different solutions depending on the underlying hardware and
+operating system used.
+
+==== 4.1.1. Communication with the shared memory model
+
+The simplest and fastest way to solve the intercommunication problem is to use
+**shared memory**. This model is very convinient for threads, as they have
+already a shared address space by definition.
 
 image::assets/OS-Shared Memory.png[800, 600]
 
-The shared memory can represent a counter, which needs to incremented by every
-task or a buffer used to store messages exchanged by the tasks. Each of the
-problems described in this chapter arise when using the shared memory model.
+The shared memory can represent an output device, a counter to be incremented
+by every task, or a buffer used to store messages exchanged by the tasks. The
+advantage of the shared memory model is its simplicity and speed, but has the
+disadvantage of being a not robust and very difficult to be analyzed formally.
+
+==== 4.1.2. Communication with the message passing model
+
+For multi-processing systems the shared memory might not be the best solution,
+as they have separate address space by definition. Additionally the
+processors might represent a distributed system, where the distances between
+the components might be relatively large. In this case it is more suitable to
+use the **message passing model**. This model is less efficient than the shared
+memory model but much easier to be analyzed formally. It is the foundation of
+many formal models used to analyze concurrent or parallel systems such as the
+**actor modell**, **pi-calculus** and others.
 
 // ============================================================================
 
-=== 4.1. Race condition
+=== 4.2. The Race Condition Problem
 
 Very often a resource must be used by only one task in order to produce the
 correct result. For example if several tasks require the printer then the
@@ -352,104 +380,75 @@ execution of the tasks.
 
 A similar example can be given with a shared variable instead of a printer.
 Let's assume that a task must write a value to a counter variable, which will
-be shared among several tasks. As in the printer scenario, a task might actually
-produce an invalid value depending on the offset in the execution time of the
-tasks.
+be shared among several tasks. This variable might be used to count how many
+symbols were printed by all the tasks and when a certain number is reached to
+it will prevent all tasks from printing until the printer is serviced. As in the
+printer scenario, a task might actually produce an invalid value depending
+on the offset in the execution time of the tasks
 
-image::assets/OS-Race-Conditions-1.png[800, 600]
+image::assets/OS-Race-Conditions-1.png[]
 
 The counter is supposed to be incremented 4 times but due to task interleaving
 the final values is incorrect. The main problem appears to be that the
 several operations are needed to increment the value of the counter and the
-scheduler is not aware of this.
-
-This is a problem if **atomicity** meaning the operations cannot be executed in
-one processor cycle. This is a very common situation and one of the main reasons
+scheduler is not aware of this. This is a very common problem and the reason
 why race conditions occur. In the example above 3 operations are needed to
 update the value of the counter: **read, modify and write**.
 
-Another possible context for race conditions is the **read, check and act**
+Another possible context for race conditions is the **check-then-act**
 scenario. In the example below the second task will be terminated by an
 exception as Task B will try to remove an element from the global list, which
 was already removed by task A in the previous cycle.
 
-image::assets/OS-Race-Conditions-2.png[800, 600]
+image::assets/OS-Race-Conditions-2.png[]
 
-To avoid race conditions we must define the access to the shared resource is
-to define a critical section, which cannot be interrupted by other tasks.
-Critical sections can be defined by using **locks**, **semaphores** or
-**mutexes**. The disadvantage of this approach is the impact on the performance
-as the critical section can be used only by one task.
+==== 4.1.1. Critical section
 
-image::assets/OS-Race-Conditions-3.png[800, 600]
+The first option to avoid race conditions is to ensure that only one task has
+the shared resource during its usage. The operations which need to executed
+without interruption are called **critical section**. Experienced programmes are
+familiar with several implementations of the critical section such as
+**semaphores** or **mutexes**. The disadvantage of this approach is the impact
+on the performance as the critical section can be used only by one task.
 
-A second option would be to refactor the code to use a local resource instead of
-a shared one. This technique is also called **state separation**. In this case
-object oriented programming is very useful as objects can store local data.
-This will avoid the critical section and this increase the program efficiency.
+image::assets/OS-Race-Conditions-3.png[]
 
-Additionally the objects might exchange information by using the message
-passing technique. For example an object might broadcast its state on an event
-and other objects might act accordingly. The processes as in  It is the
-foundation of many formal modles used to analyze concurrent systems such as
-the **actor modell**, **pi-calculus** and others.
+==== 4.1.2. State separation
 
-For example the number Pi might be approximated using random numbers. The more
-numbers are generated the better the approximation will be. The formula for the
+A second option to solve the race conditions would be to refactor the code to
+use a local resource instead of a shared one. This technique is also called
+**state separation**. In this case object oriented programming is very useful
+as objects can store local data. This will avoid the critical section and
+this increase the program efficiency.
+
+==== 4.1.3. Message passing
+
+The third option would be to use the message passing technique to avoid race
+conditions. For example an object might broadcast its state on an event and
+other objects might act accordingly. Blockchains for example use
+this technique to distribute work and update the results on the corresponding
+nodes.
+
+==== 4.1.4. Example
+
+The number Pi might be approximated using random numbers. The more numbers are
+generated the better the approximation will be. The formula for the
 approximation is **pi = 4 * (i / n)**, where i is the number of point in the
 circle with radius 1 and n the total number of points generated.
 
-image::assets/OS-Monte-Carlo.png[600, 400]
+image::assets/OS-Monte-Carlo-1.png[600, 400]
 
-**Solution 1** : Shared counters
+_Solution with shared counters_
 
 The first solution to this problem using tasks is to distribute the counter
 generation accross several tasks and use critical sections to protect the
-shared variables i and n. This of course is no better than running a single
-thread and provides no performance improvement.
+shared variables `i` and `n`. This solution is simple but has the disadvantage
+of reduced performance and in this particular problem it might be even worser
+than a single threaded solution.
 
-[source, python]
-----
-import random
-import os
-import math
-import threading
+image::assets/OS-Monte-Carlo-2.png[600, 400]
 
-inside = 0
-total = 0
-
-
-def generate_points(iterations):
-
-    i = 0
-    n = 1
-    for n in range(1, iterations + 1):
-        x = random.uniform(-1, 1)
-        y = random.uniform(-1, 1)
-        r = math.sqrt(x ** 2 + y ** 2)
-        if r <= 1:
-            i += 1
-
-    global inside
-    inside = i
-
-    global total
-    total = n
-
-
-def calc_pi():
-    pi = 4 * float(inside) / float(total)
-    print(pi)
-
-
-threads = []
-for _ in range(os.cpu_count()):
-    t = threading.Thread(target=generate_points, args=[10000, ])
-    t.start()
-calc_pi()
-----
-
-**Solutuon 2**: Separate state through objects
+_Solution with state separation_
 
 A second options would be to change the calculation model. When we look at the
 formula we see that pi can be split without relying on a shared state. The
@@ -459,178 +458,14 @@ to calculate the value of pi. Thread 1 will generate i1 and n1, thread 2 will
 generate i2 and n2 and so on. When all threads are ready executing the value
 of pi will be calculated with the new formula above.
 
-[source, python]
-----
-import random
-import math
-import threading
-import time
-import os
+image::assets/OS-Monte-Carlo-3.png[600, 400]
 
+_Solution with message passing_
 
-class CalcObject(object):
-
-    def __init__(self, iterations=1000000):
-        self.iterations = iterations
-        self.i = 0
-        self.n = 0
-
-    def generate_points(self):
-
-        i = 0
-        n = 0
-        for n in range(1, self.iterations + 1):
-            x = random.uniform(-1, 1)
-            y = random.uniform(-1, 1)
-            r = math.sqrt(x ** 2 + y ** 2)
-            if r <= 1:
-                i += 1
-
-        self.i, self.n = i, n
-
-
-def main():
-
-    print("Number of CPUs", os.cpu_count())
-
-    threads = []
-    calc_objects = []
-    for _ in range(6):
-
-        calc = CalcObject()
-        t = threading.Thread(target=calc.generate_points)
-
-        threads.append(t)
-        calc_objects.append(calc)
-
-    start_time = time.time()
-    for t in threads:
-        t.start()
-
-    for t in threads:
-        t.join()
-
-    end_time = time.time()
-    delay = end_time - start_time
-
-    i = 0
-    n = 0
-    pi = 0
-    for o in calc_objects:
-        i += o.i
-        n += o.n
-        pi = 4 * float(i) / float(n)
-
-    print("PI = {0:5f} | I = {1} / {2} | TIME = {3}".format(
-        pi,
-        i,
-        n,
-        delay
-    ))
-
-
-if __name__ == "__main__":
-    main()
-----
-
-The examples above are given in Python. Unfortunately Python will also not
-perform much better than solution 1 as it locks the interpreter though the
-**Global Interpreter Lock (GIL)**. It basically means that only one thread can
-be executed on a single processor. This makes threads in Python more suitable
-for tasks requiring long waiting, for example user input or data from the
-network. There are some third party libraries which can circumvent the usage
-of the GIL lock. One of them is **Numba** which comes with a
-**Just-In-Time (JIT)** compiler.
-
-[source, python]
-----
-import random
-import math
-import threading
-import time
-import os
-from numba import jit
-
-
-class CalcObject(object):
-
-    def __init__(self, iterations=1000000):
-        self.iterations = iterations
-
-        self.i = 0
-        self.n = 0
-        self.pi = 0
-        self.delay = 0
-
-    def generate_points(self):
-        self.i, self.n, self.pi = self.generate_points_static(self.iterations)
-
-    @staticmethod
-    @jit(nopython=True, nogil=True)
-    def generate_points_static(iterations):
-
-        i = 0
-        n = 0
-        for n in range(1, iterations + 1):
-            x = random.uniform(-1, 1)
-            y = random.uniform(-1, 1)
-            r = math.sqrt(x ** 2 + y ** 2)
-            if r <= 1:
-                i += 1
-
-        pi = 4 * (i / n)
-        return i, n, pi
-
-
-def main():
-
-    print("Number of CPUs", os.cpu_count())
-
-    threads = []
-    calc_objects = []
-    for _ in range(os.cpu_count()):
-
-        calc = CalcObject()
-        t = threading.Thread(target=calc.generate_points)
-
-        threads.append(t)
-        calc_objects.append(calc)
-
-    time_start = time.time()
-
-    for t in threads:
-        t.start()
-
-    for t in threads:
-        t.join()
-
-    time_end = time.time()
-    delay = time_end - time_start
-
-    i = 0
-    n = 0
-    pi = 0
-    for o in calc_objects:
-        i += o.i
-        n += o.n
-        pi = 4 * float(i) / float(n)
-
-    print("PI = {0:5f} | I = {1} / {2} | TIME = {3}".format
-        (pi, i, n, delay)
-    )
-
-
-if __name__ == "__main__":
-    main()
-----
-
-
-**Solutuon 3**
-
-In this solution the calculation will be distrubuted among several processors.
-They might be on the same machine or physically separated. The initiator will
-send a message to the processors to start the calculation. When a processor
-finishes its work it will send a message to all the participants to update their
+Her the calculation will be distrubuted among several processors. They might
+be on the same machine or physically separated. The initiator will send a
+message to the processors to start the calculation. When a processor finishes
+its work it will send a message to all the participants to update their
 counters and that it ended its operations. When all the processors sent messages
 that indicate end of operation, then the initiator will take the result from the
 last processor. There are several protocls, which are very suitable for message
@@ -641,27 +476,23 @@ image::assets/OS-Race-Conditions-4.png[800, 600]
 
 // ============================================================================
 
-=== 4.2. Mutual exclusion
+=== 4.3. The Mutual Exclusion Problem
 
-In the previous section it was mentioned, that there are special synchronization
-objects used to solve the race condition problem by defining a critical section.
-These objects generally solve the **mutual exculsion problem**.
+In the previous section it was mentioned that there are special synchronization
+objects that define a critical section to solve the race condition problem.
+The problem of defining a critical section is also called the **mutual exclusion
+problem.**
 
 By definition mutual exclusion guarantees that one thread never enters a
 critical section while another thread is using it. The requirement of mutual
 exclusion to solve race conditions on shared data was first defined by Dijsktra.
-He is also the first to propose a solution called **semaphore**.
-
-Processes requiring mutual exclusion have several parts. It is obligatory to
-access the shared resource always using a mutual exclusion algorithm and to
-release the resource after the work is done in the critical section. A simple
-diagram illustrating this is given below.
+He is also the first one to propose a solution called a **semaphore**.
 
 image::assets/OS-Mutual-Exclusion.png[]
 
 First the process will enter the **non-critical section**. At a certain point
 of time the process will need to access the shared resource and it will call a
-special function, which will try to claim the exclusive rights.
+acquire a semaphore, which will try to claim the exclusive rights.
 
 If the exclusivity can be guaranteed then the process continues to the
 **critical section**, where it performs operations on the shared resource.
@@ -669,18 +500,29 @@ After this the process must leave the critical section and release the resource.
 In practice it is desirable to implement the critical section to execute as
 fast as possible.
 
+If the semaphore protecting the critical section cannot be claimed then the
+process will wait until it is released. Critical sections always implement
+some kind of **busy-waiting** technique to ensure that the process will
+be granted the control after another process releases the semaphore.
+
+==== 4.2.1. Mutual exclusion with interrupt masking
+
 The simplest solution of the mutual exclusion problem is to disable all
-interupts for the crticial section. This can be though only applied on single
-processor systems and has the disatvantage of introducing non-determinism,
-which can be a serious issue for real-time operating systems.
+interupts for the duration of the critical section. This can be only applied
+on single processor systems and has the disadvantage of introducing
+non-determinism, which can be a serious issue for real-time operating systems.
 
-The next best implementation is based on hardware and uses the **busy-waiting**
-technique combined with special **atomic processor instructions**. These
-instructions cannot be interrupted and usually require one processor cycle to
-be executed.
+==== 4.2.2. Mutual exclusion with atomic instructions
 
-There are also several algorithms solving the mutual exclusion problem, which
-typically use the busy-waiting technique. The follwing algorithms are
+The next best implementation is based on the busy-waiting combined with special
+**atomic processor instructions**. These instructions cannot be interrupted and
+usually require one processor cycle to be executed. This is a hardware based
+implementation and depends on the operating system.
+
+==== 4.2.3. Mutual exclusion with dedicated algorithms
+
+There are also abstract software algorithms solving the mutual exclusion
+problem, which also use the busy-waiting technique. The follwing algorithms are
 recommended for further reading:
 
 - Dekker's Algorithm
@@ -688,6 +530,7 @@ recommended for further reading:
 - Lamport's Algorithm
 - Szymanski's Algorithm
 - Maekawa's Algorithm
+- Morris's Algorithm
 
 A developer will typically use the solutions provided by the operating system
 as they are omptimized and often solve some additional problems arising during
@@ -695,7 +538,7 @@ thread synchronization.
 
 // ============================================================================
 
-=== 4.3. Deadlock
+=== 4.4. The Deadlock Problem
 
 After solving the problem with race conditions and mutual exclusion, another
 problem might arise when using synchroinziation objects such as mutexes or
@@ -704,70 +547,83 @@ shared resources and form a lock loop waiting for each. In real life these
 problems are often know as *the chicken or the egg* problem.
 
 The illustration below demonstrates a typical deadlock scenario. We have an
-elevator, which for simplicity can be used only in one direction and must be
-shared between two persons. Each one of them wants to go to a specific floor and
-do their work.
+elevator, which for simplicity can be used only with two buttons. To start the
+elevator a person must first press the desired direction and then stop the
+elevator by pressing the opposite direction.
 
 image::assets/OS-Deadlock-1.png[]
 
-Let's suppose the two person enter the elevator at the same time
-and behave selfishly. The person called Branko will press the up button to start
-the elevator, but Mitko being selfish will press the stop button, because he
-thinks he has higher priority. Branko of course will not release the up button
-because he thinks too he has thehighest priority. In this scenario both persons
-will stay blocked indefinitely.
+Let's suppose the two person enter the elevator at the same time and behave
+selfishly. The person called Branko will press the up button to start
+the elevator. Mitko wants to go in the opposite direction and being selfish
+presses the down button. Neither of them will release a button, because they
+both think they have the highest priority. In this scenario the elevator will
+not move and both will wait forever. In the **deadlock scenario** two processes
+**wait indefinitely** for a resource to be released.
 
-Based on the example above, the formal definition of a deadlock is a situation
-on a shared resource that can arise if and only if all of following conditions
-are met. These conditions are also called **Coffman conditions**.
+Deadlocks require very specific conditions to be met. These conditions are also
+called **Coffman conditions**:
 
-1. Mutual exclusion : At least one resource uses a mutual exclusion algorithm
-2. Hold and wait : A process is holding a resource and waiting for resources
-used by other processses
-3. No preemption : A resource can be released only voluntarily by the process
-holding it
-4. Circular wait : Each process must be waiting for a resource being held by
-another process
+1. **Mutual exclusion**:
+
+    At least one process holds a resource using a mutual exclusion algorithm
+    to blocks other processes from using it.
+
+2. **Hold and wait**:
+
+    A process is holding a resource and waiting for a resource from another
+    process.
+
+3. **No preemption**:
+
+    The mutual exclusion can be released only by its owner and cannot be
+    preempted.
+
+4. **Circular wait**:
+
+    Each process must be waiting for a resource being held by another process.
 
 ==== 4.2.1. Deadlock prevention
 
-If we take the scenario above one way to break the Coffman conditions is to make
-one or more persons less selfish and so one of them go up after a certain time.
-This is the equivalent of breaking the hold and wait from the Coffman
-conditions (2). It is thus recommended always to used **lock timeout** if the
-operatings system or the compiler supports it.
+One way to break to solve the deadlock scenario is to break one of the Coffman
+conditions. To illustrate this let's suppose that Branko or Mitko is less
+selfish and will give up after a certain amount of time. This is the equivalent
+of breaking _hold and wait (2)_  from the Coffman conditions.
+
+As a programming practice the process of giving up after a certain amount of
+time is called **timeout**. It is thus recommended always to use timeouts if
+the operatings system or the compiler supports it.
 
 image::assets/OS-Deadlock-2.png[]
 
 A second solution is to put rules how to use the buttons and each person is
-obliged to follow these rules. For example the only required rule in this
-situation is always first to press the direction button and then the stop
-button. In this scenario when both person enter the elevator, the first one
-pressing the up button will be also the one pressing the stop button. This
-scenario breaks the circular wait (4) from the Coffman conditions. It is also
-a form of a **resource hierarchy** protocol.
+obliged to follow these rules. One solution is to say that the up button is with
+higher priority. Whoever presses the up button first will also press the down
+button. This scenario breaks the _circular wait (4)_ condition. It is also a
+form of a **resource hierarchy** protocol.
 
 image::assets/OS-Deadlock-3.png[]
 
-A third solution would be to use an intermediate person to operate the elevator.
-For simplicity it will service the persons based on their arrival time. If in
-the example arrives first and the Mitko, then the operator will first go to the
-floor required by Branko and then Mitko. The elevator operator formally is known
-formally as the **arbitrator**. It also breaks the circular wait condition (4).
+A third solution would be an intermediate person to operate the elevator. For
+simplicity it will service the persons based on their arrival time. If in
+the example Branko arrives first and then Mitko, then the operator will first
+go to the floor required by Branko and then Mitko. The elevator operator is
+formally known as the **arbitrator**. It also breaks the _circular wait
+condition (4)_.
 
 image::assets/OS-Deadlock-4.png[]
 
-All of the examples above tried to break one of the Coffman condiotns. Every
-solution which achieves this is also called a **deadlock prevention** algorithm.
-There is also a solid fundamental research on this topic using a more
-generalized example called the **dining philosophers problem**.
+Every solution breaking one or more of the Coffman conditions is called a
+**deadlock prevention** algorithm. There is also a solid fundamental research
+on this topic using a more generalized example called the **dining philosophers
+problem**.
 
 image::assets/OS-Deadlock-Dining-Philosophers.png[]
 
 In the example above the forks are the shared resource and the plate in front
 of the philisophers is the critical section. The philosophers can either think
 or eat. Edger Dijkstra, William Stallings and Chandy and Misra proposed
-effective solutions to the this problem.
+effective solutions based on either resource hierarchy or message passing.
 
 ==== 4.2.2. Deadlock detection and avoidance
 
@@ -797,7 +653,7 @@ where the OS will terminate one or in the worst case all tasks.
 
 // ============================================================================
 
-=== 4.4. Starvation
+=== 4.5. The Starvation Problem
 
 Starvation is a problem encountered in concurrent computing where a process
 is perpetually denied necessary resources to process its work. The priority
@@ -806,11 +662,15 @@ one or more high priority tasks which run frequently and hinder other low
 priority to run. The difference between starvation and deadlock is that
 starvation usually means gaining control after a long time but not indefinite.
 
+==== 4.4.1. Minimal delay
+
 The solution to the starvation problem is pretty straightforward. For one a
 a minimal delay in the high priority tasks will allow other tasks to regain
 control sooner.
 
     TODO: Show diagram with the scheduler to illustrate the delay solution
+
+==== 4.4.2. Task aging
 
 Another solution is to use the so called **task aging
 technique**. The OS queues all tasks requiring access to the resource. The
@@ -819,9 +679,18 @@ it takes control.
 
 image::assets/OS-Taks-Aging.png[800, 600]
 
+==== 4.4.3. Event buffering
+
+A recommended technique to avoid starvation is to run the high priority task
+on events and place the events in a buffer. When the event buffer is full then
+the task will copy the contents, do some calculates and empty the buffer. This
+way the calls to the task might be reduced significantly.
+
+    TODO: Picture of runtime with the event solution
+
 // ============================================================================
 
-=== 4.5. Priority Inversion
+=== 4.6. The Priority Inversion Problem
 
 Priority inversion is a scenario in scheduling in which a high priority task
 is indirectly superseeded by a lower priority task effectively inverting the
@@ -837,9 +706,18 @@ image::assets/OS-Priority-Inversion.png[800, 600]
 5. The LP Task resumes
 6. The LP Task finishes using the resouce and releases the semaphore
 7. The HP Task acquires the semaphore and resumes
+8. The HP Task completes execution
 
-In the scenario above the MP basically preempted the HP tasks. It appears as if
-the priority of the HP and LP task are the same.
+In this scenario two types of priority inversions are observed. One is the so
+called **bound inversion** which is caused by the lower priority task
+holding the resource for the time of the execution of the critical section. The
+next problem, the **unbound inversion** is much more serious and might lead to
+a completely non-deterministic behavior of the system. It happens when a lower
+priority task is holding a resource required by a high priority task. The lower
+priority task can be preempted by other medium priority tasks for an indefinite
+time.
+
+==== 4.5.1. Priority inheritance
 
 There are several solutions of the problems described above. For example some
 operating systems implement the **priority inheritance** technique.
@@ -857,16 +735,266 @@ image::assets/OS-Priority-Inheritance.png[800, 600]
 9. The HP Task finishes using the resource and releases the mutex
 10. The MP Task is scheduled for execution
 
+==== 4.5.2. Priority ceiling
+
+Another solution is the **priority ceiling** protocol, which will not be
+discussed in this document. It is very similar to the priority inheritance, but
+instead of boosting the priority to that of the requesting tasks, it sets the
+priority to the maximum of all tasks which will have access to the resource.
+
+=== 4.7. The Producer-Consumer Problem
+
+In the starvation problem it was mentioned that a buffer might be used to store
+high priority events in a buffer and then call a lower priority task to process
+them. Depending on the capacity of the buffer we have two distinct problem
+definitions: **unbounded buffer** and **bounded buffer**.
+
+==== 4.7.1. Unbounded buffer
+==== 4.7.2. Bounded buffer
+
+=== 4.8. The Reader-Writer Problem
+The reader-writer problem is an optimization problem solving multiple access to
+a shared resource. The participants may be readers or writers.
+
+
+=== 4.9. Other Theoretical Problems
+
+==== 4.9.1. The Dining Philosophers Problem
+==== 4.9.2. The Cigarette Smokers Problem
+Four threads are involved: an agent and three smokers. The smokers loop
+forever, first waiting for ingredients, then making and smoking cigarettes. The
+ingredients are tobacco, paper, and matches.
+We assume that the agent has an infinite supply of all three ingredients, and
+each smoker has an infinite supply of one of the ingredients; that is, one smoker
+has matches, another has paper, and the third has tobacco.
+The agent repeatedly chooses two different ingredients at random and makes
+them available to the smokers. Depending on which ingredients are chosen, the
+smoker with the complementary ingredient should pick up both resources and
+proceed.
+For example, if the agent puts out tobacco and paper, the smoker with the
+matches should pick up both ingredients, make a cigarette, and then signal the
+agent.
+To explain the premise, the agent represents an operating system that allocates resources, and the smokers represent applications that need resources. The
+problem is to make sure that if resources are available that would allow one more
+applications to proceed, those applications should be woken up. Conversely, we
+want to avoid waking an application if it cannot proceed.
+
+
+==== 4.9.3. The Dining Savages Problem
+A tribe of savages eats communal dinners from a large pot that can hold M
+servings of stewed missionary1. When a savage wants to eat, he helps himself
+from the pot, unless it is empty. If the pot is empty, the savage wakes up the
+cook and then waits until the cook has refilled the pot.
+
+==== 4.9.4. The Sleeping Barber Problem
+
+A barbershop consists of a waiting room with n chairs, and the
+barber room containing the barber chair. If there are no customers
+to be served, the barber goes to sleep. If a customer enters the
+barbershop and all chairs are occupied, then the customer leaves
+the shop. If the barber is busy, but chairs are available, then the
+customer sits in one of the free chairs. If the barber is asleep, the
+customer wakes up the barber. Write a program to coordinate the
+barber and the customers.
+
+Keywords: classical, fifo, hilzer
+
+==== 4.9.5. The Santa Claus Problem
+Stand Claus sleeps in his shop at the North Pole and can only be awakened by
+either (1) all nine reindeer being back from their vacation in the South
+Pacific, or (2) some of the elves having difficulty making toys; to allow
+Santa to get some sleep, the elves can only wake him when three of them have
+problems. When three elves are having their problems solved, any other elves
+wishing to visit Santa must wait for those elves to return. If Santa wakes up
+to find three elves waiting at his shop’s door, along with the last reindeer
+having come back from the tropics, Santa has decided that the elves can wait
+until after Christmas, because it is more important to get his sleigh ready.
+(It is assumed that the reindeer do not want to leave the tropics, and therefore
+they stay there until the last possible moment.) The last reindeer to arrive
+must get Santa while the others wait in a warming hut before being harnessed
+to the sleigh. Here are some addition specifications:
+
+- After the ninth reindeer arrives, Santa must invoke prepareSleigh, and
+then all nine reindeer must invoke getHitched.
+- After the third elf arrives, Santa must invoke helpElves. Concurrently,
+all three elves should invoke getHelp.
+- All three elves must invoke getHelp before any additional elves enter
+(increment the elf counter)
+
+==== 4.9.6. The Building H2O Problem
+There are two kinds of threads, oxygen and hydrogen. In order to assemble
+these threads into water molecules, we have to create a barrier that makes each
+thread wait until a complete molecule is ready to proceed.
+
+As each thread passes the barrier, it should invoke bond. You must guarantee
+that all the threads from one molecule invoke bond before any of the threads
+from the next molecule do. In other words:
+
+- If an oxygen thread arrives at the barrier when no hydrogen threads are
+present, it has to wait for two hydrogen threads.
+- If a hydrogen thread arrives at the barrier when no other threads are
+present, it has to wait for an oxygen thread and another hydrogen thread.
+
+We don’t have to worry about matching the threads up explicitly; that is, the
+threads do not necessarily know which other threads they are paired up
+with. The key is just that threads pass the barrier in complete sets; thus, if
+we examine the sequence of threads that invoke bond and divide them into groups
+of three, each group should contain one oxygen and two hydrogen threads.
+
+==== 4.9.7. The River Crossing Problem
+Somewhere near Redmond, Washington there is a rowboat that is used by
+both Linux hackers and Microsoft employees (serfs) to cross a river. The ferry
+can hold exactly four people; it won’t leave the shore with more or fewer. To
+guarantee the safety of the passengers, it is not permissible to put one hacker
+in the boat with three serfs, or to put one serf with three hackers. Any other
+combination is safe.
+
+As each thread boards the boat it should invoke a function called board. You
+must guarantee that all four threads from each boatload invoke board before
+any of the threads from the next boatload do.
+
+After all four threads have invoked board, exactly one of them should call
+a function named rowBoat, indicating that that thread will take the oars. It
+doesn’t matter which thread calls the function, as long as one does.
+Don’t worry about the direction of travel. Assume we are only interested in
+traffic going in one of the directions.
+
+==== 4.9.8. The Roller Coaster Problem
+
+Suppose there are n passenger threads and a car thread. The
+passengers repeatedly wait to take rides in the car, which can hold
+C passengers, where C < n. The car can go around the tracks only
+when it is full. Here are some additional details:
+
+- Passengers should invoke board and unboard.
+- The car should invoke load, run and unload.
+- Passengers cannot board until the car has invoked load
+- The car cannot depart until C passengers have boarded.
+- Passengers cannot unboard until the car has invoked unload.
+
+==== 4.9.9. The Search-Insert-Delete Problem
+Three kinds of threads share access to a singly-linked list: searchers,
+inserters and deleters.
+
+Searchers merely examine the list; hence they can execute concurrently with
+each other.
+
+Inserters add new items to the end of the list; insertions must be mutually
+exclusive to preclude two inserters from inserting new items at about the same
+time. However, one insert can proceed in parallel with any number of searches.
+
+Finally, deleters remove items from anywhere in the list. At most one
+deleter process can access the list at a time, and deletion must also be
+mutually exclusive with searches and insertions.
+
+==== 4.9.10. The Unisex Bathroom Problem
+The following synchronization constraints can be maintained:
+• There cannot be men and women in the bathroom at the same time.
+• There should never be more than three employees squandering company
+time in the bathroom.
+
+==== 4.9.11. The Baboon Crossing Problem
+There is a deep canyon somewhere in Kruger National
+Park, South Africa, and a single rope that spans the canyon. Baboons can cross
+the canyon by swinging hand-over-hand on the rope, but if two baboons going in
+opposite directions meet in the middle, they will fight and drop to their deaths.
+Furthermore, the rope is only strong enough to hold 5 baboons. If there are
+more baboons on the rope at the same time, it will break.
+
+Assuming that we can teach the baboons to use semaphores, we would like
+to design a synchronization scheme with the following properties:
+
+- Once a baboon has begun to cross, it is guaranteed to get to the other
+side without running into a baboon going the other way.
+- There are never more than 5 baboons on the rope.
+- A continuing stream of baboons crossing in one direction should not bar
+baboons going the other way indefinitely (no starvation).
+
+==== 4.9.12. The Modus Hall Problem
+After a particularly heavy snowfall this winter, the denizens of Modus Hall
+created a trench-like path between their cardboard shantytown and the rest
+of campus. Every day some of the residents walk to and from class, food and
+civilization via the path; we will ignorethe indolent students who chose
+daily to drive to Tier 3. We will also ignore the direction in which pedestrians
+are traveling. For some unknown reason, students living in West Hall would
+occasionally find it necessary to venture to the Mods.
+
+Unfortunately, the path is not wide enough to allow two people to walk
+side-by-side. If two Mods persons meet at some point on the path, one will
+gladly step aside into the neck high drift to accommodate the other. A similar
+situation will occur if two ResHall inhabitants cross paths. If a Mods heathen
+and a ResHall prude meet, however, a violent skirmish will ensue with the
+victors determined solely by strength of numbers; that is, the faction with the
+larger population will force the other to wait
+
+==== 4.9.13. The Sushi Bar Problem
+Imagine a sushi bar with 5 seats. If you arrive while there is an empty seat,
+you can take a seat immediately. But if you arrive when all 5 seats are full,
+that means that all of them are dining together, and you will have to wait for
+the entire party to leave before you sit down.
+
+==== 4.9.14. The Child Care Problem
+At a child care center, state regulations require that there is always
+one adult present for every three children.
+
+==== 4.9.15. The Room Party Problem
+The following synchronization constraints apply to students and the Dean of
+Students:
+
+1. Any number of students can be in a room at the same time.
+2. The Dean of Students can only enter a room if there are no students in
+the room (to conduct a search) or if there are more than 50 students in
+the room (to break up the party).
+3. While the Dean of Students is in the room, no additional students may
+enter, but students may leave.
+4. The Dean of Students may not leave the room until all students have left.
+5. There is only one Dean of Students, so you do not have to enforce exclusion
+among multiple deans.
+
+==== 4.9.16. The Senate Bus Problem
+Riders come to a bus stop and wait for a bus. When the bus arrives, all the waiting
+riders invoke boardBus, but anyone who arrives while the bus is boarding has
+to wait for the next bus. The capacity of the bus is 50 people; if there are more
+than 50 people waiting, some will have to wait for the next bus.
+When all the waiting riders have boarded, the bus can invoke depart. If the
+bus arrives when there are no riders, it should depart immediately.
+
+==== 4.9.17. The Faneuil Hall Problem
+There are three kinds of threads: immigrants, spectators, and a one judge.
+Immigrants must wait in line, check in, and then sit down. At some point, the
+judge enters the building. When the judge is in the building, no one may enter,
+and the immigrants may not leave. Spectators may leave. Once all immigrants
+check in, the judge can confirm the naturalization. After the confirmation, the
+immigrants pick up their certificates of U.S. Citizenship. The judge leaves at
+some point after the confirmation. Spectators may now enter as before. After
+immigrants get their certificates, they may leave.
+
+==== 4.9.18. The Dining Hall Problem
+Students in the dining hall invoke dine and then leave. After invoking dine
+and before invoking leave a student is considered “ready to leave”.
+The synchronization constraint that applies to students is that, in order to
+maintain the illusion of social suave, a student may never sit at a table alone. A
+student is considered to be sitting alone if everyone else who has invoked dine
+invokes leave before she has finished dine.
+
+==== 4.9.19. The ABA Problem
+In multithreaded computing, the ABA problem occurs during synchronization, when
+a location is read twice, has the same value for both reads, and "value is the
+same" is used to indicate "nothing has changed". However, another thread can
+execute between the two reads and change the value, do other work, then change
+the value back, thus fooling the first thread into thinking "nothing has
+changed" even though the second thread did work that violates that assumption.
+
 
 == 5. Synchronization Objects
 
-=== 5.1. Flag, Signal or Event
+=== Flag
 
 Flags, signal or events are used to control the program flow and do not define
 critical sections. They represent just a simple way of intertask synchronizing
 the tasks program flow.
 
-=== 5.2. Semaphore
+=== Semaphore
 
 Semaphore is an integer variable which is used as a **signaling mechanism**
 to allow a process to access the critical section of the code or certain
@@ -888,7 +1016,7 @@ semaphore. **Binary semaphores** are used to access a single resource, while
 **counting semaphroes** stores the number of free instances of a said resource
 and blocks until an instance becomes available.
 
-=== 5.3. Mutex
+=== Mutex
 
 A mutex or the mutual exclusion service is a special type of **locking
 mechanism** which is based on the binary semaphore. Instead of using the
@@ -900,27 +1028,16 @@ It also implements an algorithm called **priority inheritance** to solve a
 common problem of semaphores called **priority inversion**.
 
 
-=== 5.4. Condition variable
+=== Condition
 
 Condition variables will usually wait until something is true and then gain
 exclusive access to a shared resource. It can be tought as a combination of
 a flag and a mutex object. It is usually used to synchronize access to a
 shared queue and thus solving the reader-writer problem.
 
+=== Monitor
 
-=== 5.5. Mailbox
-
-- A mailbox is a **message buffer** managed by the RTOS.
-- The messages have **fixed data size** and are usually small.
-- Mailboxes work as **FIFO** (first in, first out)
-- Tasks can **send and retrieve** messages to/from the mailbox
-- If the **mailbox is empty the reading task be blocked** for a specified
-amount of time or until a message arrives.
-- When a message arrives the **kernel notifies the waiting task** and the
-scheduler determines if a task switching must be done, according to the
-priority of the running task and the task waiting for a message
-
-=== 5.6. Queue
+=== Queue
 
 - Queues are **message buffers**
 - Queues accept **messages of different lengths**.
@@ -932,7 +1049,20 @@ amount of time or until a message arrives.
 scheduler determines if a task switching must be done, according to the
 priority of the running task and the task waiting for a message
 
-=== 5.7. RWLock
+=== Mailbox
+
+- A mailbox is a **message buffer** managed by the RTOS.
+- The messages have **fixed data size** and are usually small.
+- Mailboxes work as **FIFO** (first in, first out)
+- Tasks can **send and retrieve** messages to/from the mailbox
+- If the **mailbox is empty the reading task be blocked** for a specified
+amount of time or until a message arrives.
+- When a message arrives the **kernel notifies the waiting task** and the
+scheduler determines if a task switching must be done, according to the
+priority of the running task and the task waiting for a message
+
+
+=== RWLock
 
 A reader-writer lock allows simultaneous access for read-only operations
 while write operations require exclusive access.
@@ -942,16 +1072,33 @@ others from reading or writing. A readers-writer block can also be
 implemented using semaphores and mutexes.
 
 
-=== 5.8. Spinlock
+=== Spinlock
 
 Spinlocks are similar to locks but the thread is not suspended. They are useful
 to reduce the rescheduling and context switch overhead and mostly useful for
 threads which are expected to be interrupted for only a short period of time.
 
-=== 5.9. Barrier
+=== Barrier
+A synchronization barrier enables multiple threads to wait until all threads
+have all reached a particular point of execution before any thread continues.
+Synchronization barriers cannot be shared across processes.
+
+Synchronization barriers are useful for phased computations, in which threads
+executing the same code in parallel must all complete one phase before moving
+on to the next.
+
+=== Pipeline
+=== Channel
+=== Futex
 
 
-== 6. Memory management
+== 6. Interrupt Handling
+
+== 7. Memory Management
+
+Compilation + Placement of the data in the controller memory. Types of memory
+segments. Use the LD file to adjust the memory locations and how to place the
+different variables types.
 
 ```commandline
 TODO: Image of the points below
@@ -1081,6 +1228,8 @@ void main(void) {
 - https://web.mit.edu/6.005/www/fa14/classes/17-concurrency/
 - https://en.wikipedia.org/wiki/Amdahl%27s_law
 - https://benjiv.com/pi-day-special-2021/
+- https://web.mit.edu/6.031/www/fa17/classes/22-queues/
+- https://web.mit.edu/6.031/www/fa17/
 
 === Concurrent models
 
@@ -1104,3 +1253,4 @@ void main(void) {
 
 === Others
 - https://en.wikipedia.org/wiki/Object-capability_model
+- https://godbolt.org/
