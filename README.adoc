@@ -460,7 +460,7 @@ was already removed by task A in the previous cycle.
 
 image::assets/OS-Race-Conditions-2.png[]
 
-==== 4.1.1. Solution with critical section
+==== 4.2.1. Solution with critical section
 
 The first option to avoid race conditions is to ensure that only one task has
 the shared resource during its usage. The operations which need to executed
@@ -471,7 +471,7 @@ on the performance as the critical section can be used only by one task.
 
 image::assets/OS-Race-Conditions-3.png[]
 
-==== 4.1.2. Solution with state separation
+==== 4.2.2. Solution with state separation
 
 A second option to solve the race conditions would be to refactor the code to
 use a local resource instead of a shared one. This technique is also called
@@ -479,7 +479,7 @@ use a local resource instead of a shared one. This technique is also called
 as objects can store local data. This will avoid the critical section and
 this increase the program efficiency.
 
-==== 4.1.3. Solution with message passing
+==== 4.2.3. Solution with message passing
 
 The third option would be to use the message passing technique to avoid race
 conditions. For example an object might broadcast its state on an event and
@@ -487,7 +487,7 @@ other objects might act accordingly. Blockchains for example use
 this technique to distribute work and update the results on the corresponding
 nodes.
 
-==== 4.1.4. Example
+==== 4.2.4. Example
 
 The number Pi might be approximated using random numbers. The more numbers are
 generated the better the approximation will be. The formula for the
@@ -563,7 +563,7 @@ process will wait until it is released. Critical sections always implement
 some kind of **busy-waiting** technique to ensure that the process will
 be granted the control after another process releases the semaphore.
 
-==== 4.2.1. Mutual exclusion with interrupt masking
+==== 4.3.1. Mutual exclusion with interrupt masking
 
 The simplest solution of the mutual exclusion problem is to disable all
 interupts for the duration of the critical section. This can be only applied
@@ -571,14 +571,14 @@ on single processor systems and has the disadvantage of introducing
 non-determinism in the form of clock jittering, which can be a serious issue
 for real-time operating systems.
 
-==== 4.2.2. Mutual exclusion with atomic instructions
+==== 4.3.2. Mutual exclusion with atomic instructions
 
 The next best implementation is based on the busy-waiting combined with special
 **atomic processor instructions**. These instructions cannot be interrupted and
 usually require one processor cycle to be executed. This is a hardware based
 implementation and depends on the operating system.
 
-==== 4.2.3. Mutual exclusion with dedicated algorithms
+==== 4.3.3. Mutual exclusion with dedicated algorithms
 
 There are also abstract software algorithms solving the mutual exclusion
 problem, which also use the busy-waiting technique. The follwing algorithms are
@@ -644,7 +644,7 @@ called **Coffman conditions**:
 
     Each process must be waiting for a resource being held by another process.
 
-==== 4.2.1. Solution with deadlock prevention
+==== 4.4.1. Solution with deadlock prevention
 
 One way to solve the deadlock scenario is to break one of the Coffman
 conditions. To illustrate this let's suppose that Branko, Mitko or both are
@@ -686,7 +686,7 @@ of the philisophers is the critical section. The philosophers can either think
 or eat. Edger Dijkstra, William Stallings and Chandy and Misra proposed
 effective solutions based on either resource hierarchy or message passing.
 
-==== 4.2.2. Solutuion with deadlock avoidance
+==== 4.4.2. Solutuion with deadlock avoidance
 
 Another way eliminate a deadlock is to ensure that resources are allocated
 in such a way that a deadlock cannot occur. In this case the operating system
@@ -701,7 +701,7 @@ this kind of protection.
 
     TODO: Detailed description, graphics, examples
 
-==== 4.2.3. Solution with deadlock recovery
+==== 4.4.3. Solution with deadlock recovery
 
 The third option is to allow deadlocks, detect them and implement a recovery
 strategy. This process is called **deadlock detection and recovery**.
@@ -790,7 +790,7 @@ priority task is holding a resource required by a high priority task. The lower
 priority task can be preempted by other medium priority tasks for an indefinite
 time.
 
-==== 4.5.1. Priority inheritance
+==== 4.6.1. Priority inheritance
 
 There are several solutions of the problems described above. For example some
 operating systems implement the **priority inheritance** technique.
@@ -808,7 +808,7 @@ image::assets/OS-Priority-Inheritance.png[800, 600]
 9. The HP Task finishes using the resource and releases the mutex
 10. The MP Task is scheduled for execution
 
-==== 4.5.2. Priority ceiling
+==== 4.6.2. Priority ceiling
 
 Another solution is the **priority ceiling** protocol. It is very similar to
 the priority inheritance, but instead of boosting the priority to that of the
