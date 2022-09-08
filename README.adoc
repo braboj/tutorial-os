@@ -5,85 +5,88 @@
 
 == 1. Hardware Basics
 
-image::assets/OS-Hardware-Basics.png[640, 480]
+//image::assets/OS-Hardware-Basics.png[640, 480]
+//
+//=== CPU
+//The CPU is the brain of a computer system and it is where the program is
+//executed. The design of a system starts with the CPU and determines the choices
+//of the bus and peripherals explained below.
+//
+//The CPU consists of several parts
+//
+//- Arithmetic and Logic Unit (ALU)
+//- Control Unit
+//- Registers
+//
+//=== Registers
+//
+//=== Control Bus
+//This is the set of signals that is used to synchronize the activities of the
+//separate computer components. Some of these control signals, such as RD and
+//WR are sent by the CPU to the other elements to tell them what type of
+//operation is currently in progress. The I/O elements can send control
+//signals to the CPU. An example is the rest input (RES) of the CPU
+//which, when driven LOW, causes the CPU to reset to a particular
+//starting stare.
+//
+//=== Address Bus
+//This is a unidirectional bus, because information flows over it in only
+//one direction, from the CPU to other system components.
+//
+//When the CPU wants to communicate with a certain memory location or I/O device,
+//it places the appropriate address code onto the address bus. The devices listen
+//on the address bus and if one of them recognizes its address it will respond to
+//the CPU request.
+//
+//=== Data Bus
+//This is a bi-directional bus, because data can flow to or from the CPU.
+//
+//=== Memory Chip
+//
+//=== Peripheral Device
+//
+//=== Interrupt Controller
+//
+//Interrupts are a way to stop the current program execution and to jump to a
+//special program called an **Interrupt Service Routine (ISR)**. The interrupts
+//are an efficient mechanism used by I/O devices to signal that there is data
+//available and relieve the processor from constant polling of the I/O device status.
+//
+//The interrupt service routines can interrupt tasks and take control immediately.
+//This could be quite detrimetral to the time constrains of the RTOS and this
+//is why interrupts must be used with caution and be as quick as possible.
+//
+//The interrupts themselves can be also nested. An interrupt ca never be
+//interrupted by an interrupt of lower or equal priority. If two different
+//interrupts occur at the same time the one with the higher priority gets
+//executed first.
+//
+//The first job of the interrupt should be to store the registar values of the
+//CPU and the last job should be to restore these values.
+//
+//```text
+//TODO: Picture how the ISR is executed
+//```
+//
+//=== System Clock
 
-=== CPU
-The CPU is the brain of a computer system and it is where the program is
-executed. The design of a system starts with the CPU and determines the choices
-of the bus and peripherals explained below.
 
-The CPU consists of several parts
+== 2. Concepts
 
-- Arithmetic and Logic Unit (ALU)
-- Control Unit
-- Registers
+=== 2.1. Features of operating systems
 
-
-=== Bus
-
-==== Control bus
-This is the set of signals that is used to synchronize the activities of the
-separate computer components. Some of these control signals, such as RD and
-WR are sent by the CPU to the other elements to tell them what type of
-operation is currently in progress. The I/O elements can send control
-signals to the CPU. An example is the rest input (RES) of the CPU
-which, when driven LOW, causes the CPU to reset to a particular
-starting stare.
-
-==== Address bus
-This is a unidirectional bus, because information flows over it in only
-one direction, from the CPU to other system components.
-
-When the CPU wants to communicate with a certain memory location or I/O device,
-it places the appropriate address code onto the address bus. The devices listen
-on the address bus and if one of them recognizes its address it will respond to
-the CPU request.
-
-==== Data bus
-This is a bi-directional bus, because data can flow to or from the CPU.
-
-=== Register
-=== Interrupt
-
-Interrupts are a way to stop the current program execution and to jump to a
-special program called an **Interrupt Service Routine (ISR)**. The interrupts
-are an efficient mechanism used by I/O devices to signal that there is data
-available and relieve the processor from constant polling of the I/O device status.
-
-The interrupt service routines can interrupt tasks and take control immediately.
-This could be quite detrimetral to the time constrains of the RTOS and this
-is why interrupts must be used with caution and be as quick as possible.
-
-The interrupts themselves can be also nested. An interrupt ca never be
-interrupted by an interrupt of lower or equal priority. If two different
-interrupts occur at the same time the one with the higher priority gets
-executed first.
-
-The first job of the interrupt should be to store the registar values of the
-CPU and the last job should be to restore these values.
-
-```text
-TODO: Picture how the ISR is executed
-```
-
-=== Memory
-=== Peripherals
-
-
-== 2. Operating Systems
-
-=== 2.1. Overview
-
-- manages how I/O devices communicate with the application (Chapter 1)
-- offers a structural approach to develop applications (Chapter 2)
-- offers a scheduler to allocated CPU time to different tasks (Chapter 3)
-- offers a set of services for intertask communication (Chapter 5, 6)
+- offers a structural approach to develop complex applications (Chapter 2)
+- offers a scheduler to allocate CPU time to different tasks (Chapter 3)
+- offers a set of services for intertask communication (Chapter 4, 5)
+- manages how I/O devices communicate with the application (Chapter 6)
 - manages how the memory is organized and how it is allocated (Chapter 7)
 
 
-=== 2.2. Classification
+=== 2.2. Classification of operating systems
 
-image::assets/OS-Classification.png[640, 480]
+
+image::assets/OS-Classification.png[800, 600]
+
 
 The are several differentiation criteria used to classify the operating system.
 If we take the access to the CPU in cosideration, then the operating systems
@@ -108,22 +111,12 @@ blocking (fairness)
 - **Real-time OS** that ensures the execution of high priority tasks within a
 strict time limit (deterministic)
 
+=== 2.3. Layers in an operating system
 
-Embedded systems are electronic devices that have a microprocessor but are not
-computers and usually have a very specific purpose. Such systems are for
-example the electronic control unit (ECU) of the car, smart TV, etc.
-
-Embedded systems often use real-time operating systems, which execute
-critical code within strict time constraints. If the constraints are not met
-then this would be considered a failure. This kind of systems have the
-advantage to be predictable (deterministic). This can be especially important
-in measurement and automation systems where downtime is costly or a program
-delay could cause a safety hazard.
-
-
-=== 2.3. Components
 
 image:assets/OS-Structure.png[]
+
+
 
 ==== 2.3.1. HAL
 
@@ -157,45 +150,103 @@ systems by separating the interface and the concrete implementation of common
 kernel services, such as semaphors, mutexes and others. In the **UNIX** world
 it is also named **POSIX**.
 
-== 3. Task Management
+
+=== 2.4. Real-time operating systems
+
+Embedded systems are electronic devices with a microprocessor and usually
+serve a very specific purpose. Such systems for example are the electronic
+control unit (ECU) of the car, smart TV, etc.
+
+Embedded systems often use a real-time operating system, which execute
+critical code within strict time constraints. If the constraints are not met
+then this would be considered a failure. This systems have the advantage to be
+predictable (deterministic). This can be especially important in measurement
+and control, where a small delay can be a safety hazard.
+
+Some time-critical systems are for example the steam turbine control, which
+require a reaction time in the order of 50 ms, airbag systems with reaction
+time between 15 ms and 30 ms and autonomous driving with reaction times less
+than 20 ms.
+
+== 3. Multitasking
 
 === 3.1. Task Concept
 
 A task is typically an infinite loop which never terminates. It is a
 self-contained program which runs as if it had the microprocessor all to
-itself.
+itself. Depending on the operating system a task can be understood as a thread
+or a process. Threads are tasks that share the same address space, while
+processes have their own address space.
 
-Depending on the operating system a task can be understood as a thread or a
-process. Threads are tasks that share the same address space, while processes
-have their own address space.
 
 image::assets/OS-TaskModel.png[800, 600]
+
 
 === 3.2. Task States
 
 The minimum set of states in typical task state model consists of
-the following states ...
+the following states:
 
 1. **Running** (takes control of the CPU);
 2. **Ready** (ready to be executed);
 3. **Waiting** (blocked until an event occurs ).
 
 The following graphic shows several examples of popular operating systems to
-illustrate the common and specific tasks states...
+illustrate the common and specific tasks states.
+
 
 image::assets/OS-TaskStates.png[800, 600]
 
 === 3.3. Task Scheduling
 
 Schedulers determine which task to be executed at a given point of time and
-differ mainly in the way they distribute computation time between tasks in
-the READY state. The scheduler is one of the core features of the OS kernel.
-Technically it is a program which is exectuted periodically. The period
-between the executions is also called the **system tick**.
+differ mainly in the way they choose the running task from a list of tasks in
+the READY state.
 
-==== 3.3.1. Round-Robin
+image::assets/OS-Scheduler-Execution.png[800, 600]
+
+The scheduler is one of the core features of the OS kernel. Technically it is
+a program which is exectuted periodically. The frequency of the scheduler
+execution depends on the the **system tick** and determines how quick a task
+would be run if it becomes ready.
+
+The process of choosing the next task to be run is called a **scheduling
+algorithm**. The following illustration gives the most common terms used in the
+evaluation of scheduling algorithms.
+
+image::assets/OS-Scheduler-Terms.png[800, 600]
+
+|===
+|Parameter | Description
+
+|Arrival Time (AT)
+|The point of time in which the task is marked as READY.
+
+|Completition Time (CT)
+|The point of time in which the task completed its execution.
+
+|Wait Time (WT)
+|The amount of time the process stays in the READY queue.
+
+|Burst Time (BT)
+|The amount of time in which the task is in the RUNNING state.
+
+|Turnaround Time (TAT)
+|The total time required by the process, the sum of the wait and burst time.
+
+|Priority
+|The process priority.
+
+|===
+
+
+
+
+==== 3.3.1. Round-Robin Scheduling
+
 
 image::assets/OS-Scheduling-RoundRobin.png[800, 600]
+
 
 With round-robin scheduling each task gets a certain amount of time or **time
 slices** to use the CPU. After the predefined amount of time passes the
@@ -207,21 +258,26 @@ the READY state. This ensures that each task gets some CPU time.
 - Low slicing time reudces CPU efficiency due to frequent context switching
 - Worser control of the timing of critical tasks
 
-==== 3.3.2. Priority scheduling
+==== 3.3.2. Priority Scheduling
+
 
 image::assets/OS-Scheduling-Priority.png[800, 600]
 
-With priority scheduling tasks are executed by their assigned prority.
-Usually lower numbers mean higher priority.
+
+With priority scheduling the tasks are executed in order of their assigned
+priority. Usually lower numbers mean higher priority and thus will be executed
+more often.
 
 - Good for systems with variable time and resource requirements
 - Precise control of the timing of critical tasks
 - Starvation effect possible for intensive high priority tasks
 - Starvation can be mitigated with the aging technique or by adding small delays
 
-==== 3.3.3. First Come First Served
+==== 3.3.3. First Come First Served Scheduling
+
 
 image::assets/OS-Scheduling-FirstComeFirstServed.png[800, 600]
+
 
 With this type of algorithm tasks are executed in order of their arrival.
 It is the easiest and simplest CPU scheduling algorithm.
@@ -230,144 +286,144 @@ It is the easiest and simplest CPU scheduling algorithm.
 - Starvation effect possible if a tasks takes a long time to execute
 - Higher average wait time compared to other scheduling algorithms
 
-==== 3.3.4. Shortest Job First
+==== 3.3.4. Shortest Job First Scheduling
+
 
 image::assets/OS-Scheduling-ShortestJobFirst.png[800, 600]
+
 
 With SJF tasks with shorter execution time have higher priority when
 scheduled for execution. This scheduling is mainly used to minimize the
 waiting time.
 
-- Starvation efect possible
+- Starvation effect possible
 - Best average waiting time
 - Needs an estimation of the burst time
 
 === 3.4. Task Switching
 
-==== 3.4.1. Task Structure
+A typical task consists of following parts:
 
-Typically each task consists of folling parts...
+- Task Code
+- Task Variables
+- Task Stack
+- Task Control Block (TCB)
 
-- Task code
-- Task variables
-- Task stack
-- Task control block (TCB)
+The task stack is used as a temorary storage for local variables and
+some register values before the switching process. The TCB is a data structure
+assigned to a task when it is created and contains status information about
+the task. The operating system determines how to efficiently distribute the task
+state between the task stack and the TCB during the switching process.
 
-The task’s stack has the same function as in a single-task system: storage of
-return addresses of function calls, parameters and local variables, and
-temporary storage of intermediate results and register values. Each task can
-have a different stack size.
+Some operating systems allow tasks to be interrupted by other more important
+tasks. This is called a **preemptive context switching** and is the dominant
+mechanism used in RTOS. The other type of switching is called **cooperative
+context switching** and in this case the task must explicitly release the CPU
+before another task can take control.
 
-The **Task Control Block (TCB)** is a data structure assigned to a task when it
-is created. The TCB contains status information for the task, including the
-stack pointer, task priority, current task status (ready, waiting, reason for
-suspension) and other management data. Knowledge of the stack pointer allows
-access to the other registers, which are typically stored (pushed onto) the
-stack when the task is created and each time it is suspended. This
-information allows an interrupted task to continue execution exactly where it
-left off. TCBs are only accessed by the RTOS.
+==== 3.4.1. Multi-threaded model switching
 
-Internally the OS will save the TCBs of all stacks in a dynamic list, which
-might be changed on-demand if the OS allows creation of tasks in runtime.
-
-```
-TODO: Image illustrating the TCB and how it is chained
-```
-
-
-==== 3.4.2. Switching in the multi-threaded model
-
-In the multi-threading model, which is predominatly used in RTOS the task or
-context switching is simplified the change of one set of CPU register values to
-another set of CPU register values.
+In the multi-threading model predominatly used in RTOS, the task or context
+switching is simplified the change of one set of CPU register values to another
+set of CPU register values.
 
 image::assets/OS-Multi-Threaded-Switch.png[800, 600]
 
-Switching algorithm:
+**Switching algorithm**
 
-1. Push the registers, variables on the stack of the current task
-2. Push the stack pointer on the TCB of the current task
-3. Load the stack pointer from the TCB of the new task
+1. Push the CPU registers on the stack of the current task
+2. Save the stack pointer on the TCB of the current task
+3. Restore the stack pointer from the TCB of the new task
 4. Load the registers and variables stored on the new task's stack
 
-Some operating systems allow tasks to be interrupted by other more important
-tasks. This is called a **preemptive** context switching and is the dominant
-mechanism used in RTOS. The other type of switching is called **cooperative**
-and in this case the task must explicitly release the CPU before another task
-can take control.
 
-==== 3.4.3. Switching in the multi-process model
+==== 3.4.2. Multi-process model switching
 
 For multiprocessor systems each process has its own address space and cannot
 address the memory of the other processes. The context switch requires the
-re-configuration of a special chip called MMU (Memory Management Unit). The
-role of the MMU is to map the process address space to the address space of
-the physical memory.
+re-configuration of a special chip called MMU (Memory Management Unit).
 
-```text
-TODO: Picture with an explanation how the MMU works
-```
+image::assets/OS-MMU.png[800, 600]
 
-==== 3.4.4. Switching in the lightweight process model
+The MMU allows the allocation of a portion of the virtual address space. This
+portion is also called a memory page. The role of the MMU is to map the
+process address space to the address space of the physical memory by using
+translation tables.  Additionally it protects the task from accessing resources
+outside its own memory space. An exception will be generated if tries to
+access resources outside this region.
 
-The multi-process model is much more complex and time consuming and thus not
-very useful for RTOS. If a MMU is present, the RTOS might use only to protect
-other memory areas from being accessed by the current task. This model is
-also called **"Thread Protected Mode"** or **"Lightweight Process Model**".
 
-```text
-TODO: Picture to illustrate how to use MMU to protect memory areas
-```
-
-==== 3.4.5. Concurrency vs Parallelism
+=== 3.5. Concurrency vs Parallelism
 
 The process of sharing one CPU among many tasks and thus creating the
 illusion of parallel work is called **concurrent execution**. The process of
 running tasks on multiple processors is called **parallel executuion**.
 
+
 image::assets/OS-Concurrent-vs-Parallel.png[800, 600]
 
 
-== 4. Synchronization Problems
+== 4. Multitasking Problems
 
 Tasks are a very convinient way to modularize the development process and
 optimize the CPU utilization using concurrency. But they also come with a price
 when several tasks have to exchange data. A brief summary of the most common
 synchronization problems is given below.
 
+
 image::assets/OS-Synchronization-Problems.png[]
 
-=== 4.1. The Intertask Communication Problem
+
+=== 4.1. The Task Dependency Problem
 
 The first and most important problem arising when using several tasks to
-implement a software product is how to exchange data between the tasks and how
-to control the program flow in case it depends on the state of another task.
-There are different solutions depending on the underlying hardware and
-operating system used.
+implement a software product is how to control the program flow of a task in
+case it depends on the state of another tasks, and how to ensure that the data
+exchanged between the tasks is consistent.
 
-==== 4.1.1. Communication with the shared memory model
+The simplest and fastest way to solve the dependency problem is to dedicate a
+special region and declared it common for all the tasks using it. This technique
+is called the **shared memory model**. It is very convinient for threads, as
+they have a shared address space by definition.
 
-The simplest and fastest way to solve the intercommunication problem is to use
-**shared memory**. This model is very convinient for threads, as they have
-already a shared address space by definition.
 
-image::assets/OS-Shared Memory.png[800, 600]
+image::assets/OS-Shared-Memory-Model.png[600, 400]
 
-The shared memory can represent an output device, a counter to be incremented
+
+The shared memory can represent an output device, or a counter to be modified
 by every task, or a buffer used to store messages exchanged by the tasks. The
 advantage of the shared memory model is its simplicity and speed, but has the
-disadvantage of being a not robust and very difficult to be analyzed formally.
+disadvantage of being very difficult to be analyzed formally.
 
-==== 4.1.2. Communication with the message passing model
+For distributed or multi-processor systems the the **message passing model**
+might be better suited. It avoids shared states and uses messages messages
+to synchronize the tasks execution and to exchange data. Each task will have its
+local representation of the shared resource. Using this model allows the
+software to be analyzed formally but at the price of reduced efficieny. This
+model requires more time to achieve a synchronzied state.
 
-For multi-processing systems the shared memory might not be the best solution,
-as they have separate address space by definition. Additionally the
-processors might represent a distributed system, where the distances between
-the components might be relatively large. In this case it is more suitable to
-use the **message passing model**. This model is less efficient than the shared
-memory model but much easier to be analyzed formally. It is the foundation of
-many formal models used to analyze concurrent or parallel systems such as the
-**actor modell**, **pi-calculus** and others.
+
+image::assets/OS-Message-Passing-Model.png[600, 400]
+
+
+The message passing model is the foundation of many formal process algegras used
+to analyze concurrent or parallel systems such as the **actor modell**,
+**pi-calculus**, **CSP**, *CCS*, **ACP**, **LOTOS**, **PEPA** and others.
+
+The message passing model has two modes of operation: **sychronous message
+passing** and **asynchronous message passing**.
+
+The synchronous message passing will send a message and wait until the receiver
+responds with a message yielding the result of the operation.
+
+The asynchronous message passing will not wait for the receiver to return the
+results. On the receiver side the request message will be saved in a queue and
+when its processing is done a result message will be stored in an output message
+queue.
+
+The problems following in this chapter apply to both the shared memory and
+the message passing model. For simplicity the problem formulation will be based
+only on tasks using shared memory.
 
 // ============================================================================
 
@@ -381,19 +437,21 @@ execution of the tasks.
 A similar example can be given with a shared variable instead of a printer.
 Let's assume that a task must write a value to a counter variable, which will
 be shared among several tasks. This variable might be used to count how many
-symbols were printed by all the tasks and when a certain number is reached to
-it will prevent all tasks from printing until the printer is serviced. As in the
+symbols were sent to the printer totally and when a certain threshold is reached
+it will prevent all tasks from printing until the device is serviced. As in the
 printer scenario, a task might actually produce an invalid value depending
-on the offset in the execution time of the tasks
+on the execution scheduling of the tasks.
+
 
 image::assets/OS-Race-Conditions-1.png[]
 
-The counter is supposed to be incremented 4 times but due to task interleaving
-the final values is incorrect. The main problem appears to be that the
-several operations are needed to increment the value of the counter and the
-scheduler is not aware of this. This is a very common problem and the reason
-why race conditions occur. In the example above 3 operations are needed to
-update the value of the counter: **read, modify and write**.
+
+The counter is supposed to be incremented 3 times but due to task interleaving
+the final value is incorrect. The main problem appears to be that several
+operations are needed to increment the value of the counter and the scheduler
+is not aware of this. This is a very common problem and the reason
+why race conditions occur. In the example above the operations are needed to
+update the value of the counter are **read, modify and write**.
 
 Another possible context for race conditions is the **check-then-act**
 scenario. In the example below the second task will be terminated by an
@@ -402,7 +460,7 @@ was already removed by task A in the previous cycle.
 
 image::assets/OS-Race-Conditions-2.png[]
 
-==== 4.1.1. Critical section
+==== 4.1.1. Solution with critical section
 
 The first option to avoid race conditions is to ensure that only one task has
 the shared resource during its usage. The operations which need to executed
@@ -413,7 +471,7 @@ on the performance as the critical section can be used only by one task.
 
 image::assets/OS-Race-Conditions-3.png[]
 
-==== 4.1.2. State separation
+==== 4.1.2. Solution with state separation
 
 A second option to solve the race conditions would be to refactor the code to
 use a local resource instead of a shared one. This technique is also called
@@ -421,7 +479,7 @@ use a local resource instead of a shared one. This technique is also called
 as objects can store local data. This will avoid the critical section and
 this increase the program efficiency.
 
-==== 4.1.3. Message passing
+==== 4.1.3. Solution with message passing
 
 The third option would be to use the message passing technique to avoid race
 conditions. For example an object might broadcast its state on an event and
@@ -480,8 +538,8 @@ image::assets/OS-Race-Conditions-4.png[800, 600]
 
 In the previous section it was mentioned that there are special synchronization
 objects that define a critical section to solve the race condition problem.
-The problem of defining a critical section is also called the **mutual exclusion
-problem.**
+The implementation of the critical section, which requires exclusive access to
+a shared resources is called a **mutual exclusion algorithm.**
 
 By definition mutual exclusion guarantees that one thread never enters a
 critical section while another thread is using it. The requirement of mutual
@@ -510,7 +568,8 @@ be granted the control after another process releases the semaphore.
 The simplest solution of the mutual exclusion problem is to disable all
 interupts for the duration of the critical section. This can be only applied
 on single processor systems and has the disadvantage of introducing
-non-determinism, which can be a serious issue for real-time operating systems.
+non-determinism in the form of clock jittering, which can be a serious issue
+for real-time operating systems.
 
 ==== 4.2.2. Mutual exclusion with atomic instructions
 
@@ -525,16 +584,18 @@ There are also abstract software algorithms solving the mutual exclusion
 problem, which also use the busy-waiting technique. The follwing algorithms are
 recommended for further reading:
 
-- Dekker's Algorithm
-- Peterson's Algorithm
-- Lamport's Algorithm
-- Szymanski's Algorithm
-- Maekawa's Algorithm
-- Morris's Algorithm
+- Dekker's Algorithm (shared memory)
+- Peterson's Algorithm (shared memory)
+- Lamport's Bakery Algorithm (shared memory)
+- Szymanski's Algorithm (shared memory)
+- Lambort's Distributed (message passing)
+- Maekawa's Algorithm (message passing)
+- Raymond's Algorithm (message passing)
+- Morris's Algorithm (message passing)
 
-A developer will typically use the solutions provided by the operating system
-as they are omptimized and often solve some additional problems arising during
-thread synchronization.
+Synchronization primitives are tightly coupled with the underlying hardware
+and not every solution might be appropriate. Developers will typically use the
+optimized solutions provided by the operating system.
 
 // ============================================================================
 
@@ -557,9 +618,9 @@ Let's suppose the two person enter the elevator at the same time and behave
 selfishly. The person called Branko will press the up button to start
 the elevator. Mitko wants to go in the opposite direction and being selfish
 presses the down button. Neither of them will release a button, because they
-both think they have the highest priority. In this scenario the elevator will
-not move and both will wait forever. In the **deadlock scenario** two processes
-**wait indefinitely** for a resource to be released.
+both think they have the highest personal importance. In this scenario the
+elevator will not move and both will wait forever. In a **deadlock scenario**
+two processes **wait indefinitely** for a resource to be released.
 
 Deadlocks require very specific conditions to be met. These conditions are also
 called **Coffman conditions**:
@@ -583,18 +644,18 @@ called **Coffman conditions**:
 
     Each process must be waiting for a resource being held by another process.
 
-==== 4.2.1. Deadlock prevention
+==== 4.2.1. Solution with deadlock prevention
 
-One way to break to solve the deadlock scenario is to break one of the Coffman
-conditions. To illustrate this let's suppose that Branko or Mitko is less
-selfish and will give up after a certain amount of time. This is the equivalent
-of breaking _hold and wait (2)_  from the Coffman conditions.
-
-As a programming practice the process of giving up after a certain amount of
-time is called **timeout**. It is thus recommended always to use timeouts if
-the operatings system or the compiler supports it.
+One way to solve the deadlock scenario is to break one of the Coffman
+conditions. To illustrate this let's suppose that Branko, Mitko or both are
+friendlier and one of them will give up after a certain amount of time. This is
+the equivalent of breaking _hold and wait (2)_ from the Coffman conditions.
 
 image::assets/OS-Deadlock-2.png[]
+
+As a programming practice the process of giving up after a certain amount of
+time is called a **timeout**. It is usually recommended always to use timeouts
+if the operatings system supports it.
 
 A second solution is to put rules how to use the buttons and each person is
 obliged to follow these rules. One solution is to say that the up button is with
@@ -607,8 +668,8 @@ image::assets/OS-Deadlock-3.png[]
 A third solution would be an intermediate person to operate the elevator. For
 simplicity it will service the persons based on their arrival time. If in
 the example Branko arrives first and then Mitko, then the operator will first
-go to the floor required by Branko and then Mitko. The elevator operator is
-formally known as the **arbitrator**. It also breaks the _circular wait
+go to the floor required by Branko and then sevice Mitko. The elevator operator
+is formally known as the **arbitrator**. It also breaks the _circular wait
 condition (4)_.
 
 image::assets/OS-Deadlock-4.png[]
@@ -625,7 +686,7 @@ of the philisophers is the critical section. The philosophers can either think
 or eat. Edger Dijkstra, William Stallings and Chandy and Misra proposed
 effective solutions based on either resource hierarchy or message passing.
 
-==== 4.2.2. Deadlock detection and avoidance
+==== 4.2.2. Solutuion with deadlock avoidance
 
 Another way eliminate a deadlock is to ensure that resources are allocated
 in such a way that a deadlock cannot occur. In this case the operating system
@@ -638,9 +699,9 @@ algorithm**. The disadvantage of this solutions is that the process must
 communicate its resource requirements in advance. The **Abassi RTOS** offers
 this kind of protection.
 
-    TODO: Graphic
+    TODO: Detailed description, graphics, examples
 
-==== 4.2.3. Deadlock detection and recovery
+==== 4.2.3. Solution with deadlock recovery
 
 The third option is to allow deadlocks, detect them and implement a recovery
 strategy. This process is called **deadlock detection and recovery**.
@@ -649,7 +710,7 @@ The most common detection algrorithms are the **Wait-For-Graph** and the
 resource will be preempted and allocated to other processes or pessimistic
 where the OS will terminate one or in the worst case all tasks.
 
-    TODO: Graphic
+    TODO: Detailed description, graphics, examples
 
 // ============================================================================
 
@@ -662,15 +723,19 @@ one or more high priority tasks which run frequently and hinder other low
 priority to run. The difference between starvation and deadlock is that
 starvation usually means gaining control after a long time but not indefinite.
 
-==== 4.4.1. Minimal delay
+==== 4.5.1. Solution with minimal delay
 
 The solution to the starvation problem is pretty straightforward. For one a
 a minimal delay in the high priority tasks will allow other tasks to regain
 control sooner.
 
-    TODO: Show diagram with the scheduler to illustrate the delay solution
+image::assets/OS-Starvation-Delay.png[]
 
-==== 4.4.2. Task aging
+It is not always possible to apply this solutuon especially in high priority
+tasks as this might lead to a loss of critical events or cause the task to
+operate outside the time constraints.
+
+==== 4.5.2. Solution with task aging
 
 Another solution is to use the so called **task aging
 technique**. The OS queues all tasks requiring access to the resource. The
@@ -679,14 +744,22 @@ it takes control.
 
 image::assets/OS-Taks-Aging.png[800, 600]
 
-==== 4.4.3. Event buffering
+==== 4.5.3. Solution with event buffering
 
 A recommended technique to avoid starvation is to run the high priority task
 on events and place the events in a buffer. When the event buffer is full then
 the task will copy the contents, do some calculates and empty the buffer. This
 way the calls to the task might be reduced significantly.
 
-    TODO: Picture of runtime with the event solution
+image::assets/OS-Starvation-Buffering.png[800, 600]
+
+The event capture and the processing take each one cycles. In the picture above
+the low priority tasks is starved until there are no high priority events to
+be processed. The event buffering allows the low priority tasks to be run
+without adding much delay from the time of capturing an event to its processing.
+In the example above a medium priority processing task is run on every 3
+captured events.
+
 
 // ============================================================================
 
@@ -726,8 +799,8 @@ image::assets/OS-Priority-Inheritance.png[800, 600]
 
 1. A Low Priority Task (LP Task) acquires a resource
 2. A High Prioriy Task (HP Task) waits for the resource from the LP task
-3. The priority of the LP task is elevated to that of the HP task
-4. A Medium Priority Task (MP Task) becomes ready
+3. A Medium Priority Task (MP Task) becomes ready
+4. The priority of the LP task is elevated to that of the HP task
 5. The LP Task is temporary with higher priority and resumes
 6. The LP Task finishes using the resource and release the mutex
 7. The LP Taks has its original priority restored
@@ -737,56 +810,39 @@ image::assets/OS-Priority-Inheritance.png[800, 600]
 
 ==== 4.5.2. Priority ceiling
 
-Another solution is the **priority ceiling** protocol, which will not be
-discussed in this document. It is very similar to the priority inheritance, but
-instead of boosting the priority to that of the requesting tasks, it sets the
-priority to the maximum of all tasks which will have access to the resource.
+Another solution is the **priority ceiling** protocol. It is very similar to
+the priority inheritance, but instead of boosting the priority to that of the
+requesting tasks, it sets the priority to the maximum of all tasks which will
+have access to the resource. This solution is not always easy to implement, as
+it requires knowledge a priori about all the tasks using the shared resource.
 
-=== 4.7. The Producer-Consumer Problem
+    TODO: Add graphic to demonstrate the priority ceiling protocol
+
+=== 4.6. Classical Synchronization Problems
+
+==== 4.6.1. The Dining Philosophers Problem
+
+The dining philosopher's problem is the classical problem of synchronization
+which says that five philosophers are sitting around a circular table and their
+job is to think and eat alternatively.
+
+A bowl of noodles is placed at the center of the table along with five
+chopsticks for each of the philosophers. A philosopher can only eat if both
+left and right chopsticks of the philosopher are available. The chopsticks are
+randomly picked.
+
+==== 4.6.2. The Producer-Consumer Problem
 
 In the starvation problem it was mentioned that a buffer might be used to store
 high priority events in a buffer and then call a lower priority task to process
 them. Depending on the capacity of the buffer we have two distinct problem
 definitions: **unbounded buffer** and **bounded buffer**.
 
-==== 4.7.1. Unbounded buffer
-==== 4.7.2. Bounded buffer
-
-=== 4.8. The Reader-Writer Problem
+==== 4.6.3. The Reader-Writer Problem
 The reader-writer problem is an optimization problem solving multiple access to
 a shared resource. The participants may be readers or writers.
 
-
-=== 4.9. Other Theoretical Problems
-
-==== 4.9.1. The Dining Philosophers Problem
-==== 4.9.2. The Cigarette Smokers Problem
-Four threads are involved: an agent and three smokers. The smokers loop
-forever, first waiting for ingredients, then making and smoking cigarettes. The
-ingredients are tobacco, paper, and matches.
-We assume that the agent has an infinite supply of all three ingredients, and
-each smoker has an infinite supply of one of the ingredients; that is, one smoker
-has matches, another has paper, and the third has tobacco.
-The agent repeatedly chooses two different ingredients at random and makes
-them available to the smokers. Depending on which ingredients are chosen, the
-smoker with the complementary ingredient should pick up both resources and
-proceed.
-For example, if the agent puts out tobacco and paper, the smoker with the
-matches should pick up both ingredients, make a cigarette, and then signal the
-agent.
-To explain the premise, the agent represents an operating system that allocates resources, and the smokers represent applications that need resources. The
-problem is to make sure that if resources are available that would allow one more
-applications to proceed, those applications should be woken up. Conversely, we
-want to avoid waking an application if it cannot proceed.
-
-
-==== 4.9.3. The Dining Savages Problem
-A tribe of savages eats communal dinners from a large pot that can hold M
-servings of stewed missionary1. When a savage wants to eat, he helps himself
-from the pot, unless it is empty. If the pot is empty, the savage wakes up the
-cook and then waits until the cook has refilled the pot.
-
-==== 4.9.4. The Sleeping Barber Problem
+==== 4.6.4. The Sleeping Barber Problem
 
 A barbershop consists of a waiting room with n chairs, and the
 barber room containing the barber chair. If there are no customers
@@ -799,7 +855,41 @@ barber and the customers.
 
 Keywords: classical, fifo, hilzer
 
-==== 4.9.5. The Santa Claus Problem
+==== 4.6.5. The Cigarette Smokers Problem
+
+Four threads are involved: an agent and three smokers. The smokers loop
+forever, first waiting for ingredients, then making and smoking cigarettes. The
+ingredients are tobacco, paper, and matches.
+
+We assume that the agent has an infinite supply of all three ingredients, and
+each smoker has an infinite supply of one of the ingredients; that is, one smoker
+has matches, another has paper, and the third has tobacco.
+
+The agent repeatedly chooses two different ingredients at random and makes
+them available to the smokers. Depending on which ingredients are chosen, the
+smoker with the complementary ingredient should pick up both resources and
+proceed.
+
+For example, if the agent puts out tobacco and paper, the smoker with the
+matches should pick up both ingredients, make a cigarette, and then signal the
+agent.
+
+To explain the premise, the agent represents an operating system that allocates
+resources, and the smokers represent applications that need resources. The
+problem is to make sure that if resources are available that would allow one
+more applications to proceed, those applications should be woken up.
+we want to avoid waking an application if it cannot proceed.
+
+
+=== 4.7. Other Theoretical Problems
+
+==== 4.7.1. The Dining Savages Problem
+A tribe of savages eats communal dinners from a large pot that can hold M
+servings of stewed missionary1. When a savage wants to eat, he helps himself
+from the pot, unless it is empty. If the pot is empty, the savage wakes up the
+cook and then waits until the cook has refilled the pot.
+
+==== 4.7.2. The Santa Claus Problem
 Stand Claus sleeps in his shop at the North Pole and can only be awakened by
 either (1) all nine reindeer being back from their vacation in the South
 Pacific, or (2) some of the elves having difficulty making toys; to allow
@@ -821,7 +911,7 @@ all three elves should invoke getHelp.
 - All three elves must invoke getHelp before any additional elves enter
 (increment the elf counter)
 
-==== 4.9.6. The Building H2O Problem
+==== 4.7.3. The Building H2O Problem
 There are two kinds of threads, oxygen and hydrogen. In order to assemble
 these threads into water molecules, we have to create a barrier that makes each
 thread wait until a complete molecule is ready to proceed.
@@ -841,7 +931,7 @@ with. The key is just that threads pass the barrier in complete sets; thus, if
 we examine the sequence of threads that invoke bond and divide them into groups
 of three, each group should contain one oxygen and two hydrogen threads.
 
-==== 4.9.7. The River Crossing Problem
+==== 4.7.4. The River Crossing Problem
 Somewhere near Redmond, Washington there is a rowboat that is used by
 both Linux hackers and Microsoft employees (serfs) to cross a river. The ferry
 can hold exactly four people; it won’t leave the shore with more or fewer. To
@@ -859,7 +949,7 @@ doesn’t matter which thread calls the function, as long as one does.
 Don’t worry about the direction of travel. Assume we are only interested in
 traffic going in one of the directions.
 
-==== 4.9.8. The Roller Coaster Problem
+==== 4.7.5. The Roller Coaster Problem
 
 Suppose there are n passenger threads and a car thread. The
 passengers repeatedly wait to take rides in the car, which can hold
@@ -872,7 +962,7 @@ when it is full. Here are some additional details:
 - The car cannot depart until C passengers have boarded.
 - Passengers cannot unboard until the car has invoked unload.
 
-==== 4.9.9. The Search-Insert-Delete Problem
+==== 4.7.6. The Search-Insert-Delete Problem
 Three kinds of threads share access to a singly-linked list: searchers,
 inserters and deleters.
 
@@ -887,13 +977,13 @@ Finally, deleters remove items from anywhere in the list. At most one
 deleter process can access the list at a time, and deletion must also be
 mutually exclusive with searches and insertions.
 
-==== 4.9.10. The Unisex Bathroom Problem
+==== 4.7.7. The Unisex Bathroom Problem
 The following synchronization constraints can be maintained:
 • There cannot be men and women in the bathroom at the same time.
 • There should never be more than three employees squandering company
 time in the bathroom.
 
-==== 4.9.11. The Baboon Crossing Problem
+==== 4.7.8. The Baboon Crossing Problem
 There is a deep canyon somewhere in Kruger National
 Park, South Africa, and a single rope that spans the canyon. Baboons can cross
 the canyon by swinging hand-over-hand on the rope, but if two baboons going in
@@ -910,7 +1000,7 @@ side without running into a baboon going the other way.
 - A continuing stream of baboons crossing in one direction should not bar
 baboons going the other way indefinitely (no starvation).
 
-==== 4.9.12. The Modus Hall Problem
+==== 4.7.9. The Modus Hall Problem
 After a particularly heavy snowfall this winter, the denizens of Modus Hall
 created a trench-like path between their cardboard shantytown and the rest
 of campus. Every day some of the residents walk to and from class, food and
@@ -927,17 +1017,17 @@ and a ResHall prude meet, however, a violent skirmish will ensue with the
 victors determined solely by strength of numbers; that is, the faction with the
 larger population will force the other to wait
 
-==== 4.9.13. The Sushi Bar Problem
+==== 4.7.10. The Sushi Bar Problem
 Imagine a sushi bar with 5 seats. If you arrive while there is an empty seat,
 you can take a seat immediately. But if you arrive when all 5 seats are full,
 that means that all of them are dining together, and you will have to wait for
 the entire party to leave before you sit down.
 
-==== 4.9.14. The Child Care Problem
+==== 4.7.11. The Child Care Problem
 At a child care center, state regulations require that there is always
 one adult present for every three children.
 
-==== 4.9.15. The Room Party Problem
+==== 4.7.12. The Room Party Problem
 The following synchronization constraints apply to students and the Dean of
 Students:
 
@@ -951,7 +1041,7 @@ enter, but students may leave.
 5. There is only one Dean of Students, so you do not have to enforce exclusion
 among multiple deans.
 
-==== 4.9.16. The Senate Bus Problem
+==== 4.7.13. The Senate Bus Problem
 Riders come to a bus stop and wait for a bus. When the bus arrives, all the waiting
 riders invoke boardBus, but anyone who arrives while the bus is boarding has
 to wait for the next bus. The capacity of the bus is 50 people; if there are more
@@ -959,7 +1049,7 @@ than 50 people waiting, some will have to wait for the next bus.
 When all the waiting riders have boarded, the bus can invoke depart. If the
 bus arrives when there are no riders, it should depart immediately.
 
-==== 4.9.17. The Faneuil Hall Problem
+==== 4.7.14. The Faneuil Hall Problem
 There are three kinds of threads: immigrants, spectators, and a one judge.
 Immigrants must wait in line, check in, and then sit down. At some point, the
 judge enters the building. When the judge is in the building, no one may enter,
@@ -969,7 +1059,7 @@ immigrants pick up their certificates of U.S. Citizenship. The judge leaves at
 some point after the confirmation. Spectators may now enter as before. After
 immigrants get their certificates, they may leave.
 
-==== 4.9.18. The Dining Hall Problem
+==== 4.7.15. The Dining Hall Problem
 Students in the dining hall invoke dine and then leave. After invoking dine
 and before invoking leave a student is considered “ready to leave”.
 The synchronization constraint that applies to students is that, in order to
@@ -977,7 +1067,7 @@ maintain the illusion of social suave, a student may never sit at a table alone.
 student is considered to be sitting alone if everyone else who has invoked dine
 invokes leave before she has finished dine.
 
-==== 4.9.19. The ABA Problem
+==== 4.7.16. The ABA Problem
 In multithreaded computing, the ABA problem occurs during synchronization, when
 a location is read twice, has the same value for both reads, and "value is the
 same" is used to indicate "nothing has changed". However, another thread can
@@ -989,6 +1079,8 @@ changed" even though the second thread did work that violates that assumption.
 == 5. Synchronization Objects
 
 === Flag
+=== Signal
+=== Event
 
 Flags, signal or events are used to control the program flow and do not define
 critical sections. They represent just a simple way of intertask synchronizing
@@ -1035,8 +1127,6 @@ exclusive access to a shared resource. It can be tought as a combination of
 a flag and a mutex object. It is usually used to synchronize access to a
 shared queue and thus solving the reader-writer problem.
 
-=== Monitor
-
 === Queue
 
 - Queues are **message buffers**
@@ -1062,62 +1152,63 @@ scheduler determines if a task switching must be done, according to the
 priority of the running task and the task waiting for a message
 
 
-=== RWLock
-
-A reader-writer lock allows simultaneous access for read-only operations
-while write operations require exclusive access.
-
-Multiple tasks can read at the same time, but a writing task will block
-others from reading or writing. A readers-writer block can also be
-implemented using semaphores and mutexes.
-
-
-=== Spinlock
-
-Spinlocks are similar to locks but the thread is not suspended. They are useful
-to reduce the rescheduling and context switch overhead and mostly useful for
-threads which are expected to be interrupted for only a short period of time.
-
-=== Barrier
-A synchronization barrier enables multiple threads to wait until all threads
-have all reached a particular point of execution before any thread continues.
-Synchronization barriers cannot be shared across processes.
-
-Synchronization barriers are useful for phased computations, in which threads
-executing the same code in parallel must all complete one phase before moving
-on to the next.
-
-=== Pipeline
-=== Channel
-=== Futex
+//=== Monitor
+//=== RWLock
+//
+//A reader-writer lock allows simultaneous access for read-only operations
+//while write operations require exclusive access.
+//
+//Multiple tasks can read at the same time, but a writing task will block
+//others from reading or writing. A readers-writer block can also be
+//implemented using semaphores and mutexes.
+//
+//
+//=== Spinlock
+//
+//Spinlocks are similar to locks but the thread is not suspended. They are useful
+//to reduce the rescheduling and context switch overhead and mostly useful for
+//threads which are expected to be interrupted for only a short period of time.
+//
+//=== Barrier
+//A synchronization barrier enables multiple threads to wait until all threads
+//have all reached a particular point of execution before any thread continues.
+//Synchronization barriers cannot be shared across processes.
+//
+//Synchronization barriers are useful for phased computations, in which threads
+//executing the same code in parallel must all complete one phase before moving
+//on to the next.
+//
+//=== Pipeline
+//=== Channel
+//=== Futex
 
 
 == 6. Interrupt Handling
 
 == 7. Memory Management
 
-Compilation + Placement of the data in the controller memory. Types of memory
-segments. Use the LD file to adjust the memory locations and how to place the
-different variables types.
+//Compilation + Placement of the data in the controller memory. Types of memory
+//segments. Use the LD file to adjust the memory locations and how to place the
+//different variables types.
+//
+//```commandline
+//TODO: Image of the points below
+//```
+//
+//- static for global and static variables
+//- stack for local variables
+//- heap for dynamic allocation
+//- Explain some important concepts such as memory initialization and NULL
+//
+//```commandline
+//TODO: Image of the points below
+//```
+//
+//- Explain the function of the linker
+//- Take a look at a program (for example .com, .exe or .elf)
+//- Explain how the program is loaded in to the memory
 
-```commandline
-TODO: Image of the points below
-```
-
-- static for global and static variables
-- stack for local variables
-- heap for dynamic allocation
-- Explain some important concepts such as memory initialization and NULL
-
-```commandline
-TODO: Image of the points below
-```
-
-- Explain the function of the linker
-- Take a look at a program (for example .com, .exe or .elf)
-- Explain how the program is loaded in to the memory
-
-== 7. Best practices
+== 8. Best practices
 
 - Each task is to be considered an application of its own
 - Initialize shared resources before task creation
@@ -1165,7 +1256,7 @@ void main(void) {
 ```
 
 
-== References
+== 9. References
 
 === Books
 - https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/index.html
@@ -1173,6 +1264,7 @@ void main(void) {
 
 === Videos
 - https://www.youtube.com/playlist?list=PLEBQazB0HUyQ4hAPU1cJED6t3DU0h34bz
+- https://www.youtube.com/watch?v=3tl2YEYbaKk&list=PL30NBs02RsiUbmXVPDo56APsU0xa6gfL2
 
 === Operating systems
 - https://www.ni.com/en-rs/innovations/white-papers/07/what-is-a-real-time-operating-system--rtos--.html
@@ -1230,15 +1322,9 @@ void main(void) {
 - https://benjiv.com/pi-day-special-2021/
 - https://web.mit.edu/6.031/www/fa17/classes/22-queues/
 - https://web.mit.edu/6.031/www/fa17/
-
-=== Concurrent models
-
-- Shared memory
-- Message passing
-    - Parallel workers
-    - Event driven (actor, channel, futures, pipelines, etc.)
-    - Functional programming
-
+- https://www.embedded.com/how-to-use-priority-inheritance/
+- https://dev.to/hatsugai/prioriy-inversion-and-priority-inheritance-nl3
+- https://doc.rust-lang.org/book/ch16-02-message-passing.html
 
 === Scheduling algorithms
 - https://data-flair.training/blogs/scheduling-algorithms-in-operating-system/
