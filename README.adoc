@@ -510,10 +510,10 @@ _Solution with state separation_
 
 A second option would be to change the calculation model. When we look at the
 formula we see that pi can be split without relying on a shared state. The
-formula can be changed to **pi = 4 * (i1 + ... + ik) / (n1 + ... + nk)**. This
+formula can be changed to **pi = 4 * (i~1~ + ... + i~k~) / (n~1~ + ... + n~k~)**. This
 means that we can create k threads and sum their respective values for i and n
-to calculate the value of pi. Thread 1 will generate i1 and n1, thread 2 will
-generate i2 and n2 and so on. When all threads are ready executing the value
+to calculate the value of pi. Thread 1 will generate i~1~ and n~1~, thread 2 will
+generate i~2~ and n~2~ and so on. When all threads are ready executing the value
 of pi will be calculated with the new formula above.
 
 image::assets/OS-Monte-Carlo-3.png[600, 400]
