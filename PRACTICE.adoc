@@ -18,10 +18,17 @@ Write multi-task application with ISR
 == 3. Synchronziation objects
 
 === Semaphore
+Demo application with sempahores
+
 === Mutex
-=== Condition
+Demo application with mutexes
+
 === Events
+Demo application with events
+
 === Queue
+Demo application with queues
+
 
 == 4. Synchronziation problems
 
