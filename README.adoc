@@ -520,8 +520,8 @@ image::assets/OS-Monte-Carlo-3.png[600, 400]
 
 _Solution with message-passing_
 
-Her calculation will be distributed among several processors. They might
-be on the same machine or physically separated. The initiator will send a
+As a third option the calculation will be distributed among several processors.
+They mightbe on the same machine or physically separated. The initiator will send a
 message to the processors to start the calculation. When a processor finishes
 its work it will send a message to all the participants to update their
 counters and that it ended its operations. When all the processors sent messages
