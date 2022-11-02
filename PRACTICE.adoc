@@ -5,34 +5,37 @@
 
 
 == 2. Program models
+
 === Single loop
+Write a single loop application
+
 === Main loop and ISR
+Write a single loop application with ISR
+
 === RTOS and Tasks
+Write multi-task application with ISR
 
+== 3. Synchronziation objects
 
-== 3. Synchronziation problems
-=== Race Conditions
-=== Deadlock
-=== Starvation
-=== Priority inversion
-
-== 4. Synchronziation objects
 === Semaphore
 === Mutex
 === Condition
 === Events
 === Queue
 
-== 5. Synchronization problems
+== 4. Synchronziation problems
 
-=== 5.1. Dining philosophers problem
-=== 5.2. Producer-consumer problem
-=== 5.3. Reader-writer problem
-=== 5.4. Sleeping-barber problem
-=== 5.5. Cigarette smokers problem
-=== 5.6. ABA problem
+=== Race Conditions
+Simulate a race condition in the application
 
-== 6. Multicore systems
+=== Deadlock
+Simulate a deadlock in the application
+
+=== Starvation
+Simulate a starvation in the application
+
+=== Priority inversion
+Simulate a priority inversion in the application
 
 == 7. Study projects
 
