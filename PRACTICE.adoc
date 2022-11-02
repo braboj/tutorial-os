@@ -1,10 +1,11 @@
 == 1. Installation
+
 === IDE
 === Toolchain
 === Drivers
 
 
-== 2. Program models
+== 2. Program Models
 
 === Single loop
 Write a single loop application
@@ -30,7 +31,7 @@ Demo application with events
 Demo application with queues
 
 
-== 4. Synchronziation problems
+== 4. Synchronziation Problems
 
 === Race Conditions
 Simulate a race condition in the application
@@ -44,7 +45,7 @@ Simulate a starvation in the application
 === Priority inversion
 Simulate a priority inversion in the application
 
-== 7. Study projects
+== 5. Study Projects
 
 === Simple protocol stack
 
