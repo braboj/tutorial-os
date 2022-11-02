@@ -742,7 +742,7 @@ The OS queues all tasks requiring access to the resource. The longer
 the tasks stay in the queue the higher their priority will become until
 it takes control.
 
-image::assets/OS-Task-Aging.png[800, 600]
+image::assets/OS-Taks-Aging.png[800, 600]
 
 ==== 4.5.3. Solution with event buffering
 
