@@ -1208,7 +1208,15 @@ priority of the running task and the task waiting for a message
 //- Take a look at a program (for example .com, .exe or .elf)
 //- Explain how the program is loaded in to the memory
 
-== 8. Best practices
+== 8. Debugging
+
+
+- https://www.youtube.com/watch?v=q051crwMBxQ
+- https://www.youtube.com/watch?v=O0L2C4FLaFk
+- https://www.youtube.com/watch?v=AgSQL89zWM0&list=PL1sbHjUq1DdqQSBlk-uM-EJ3O1iof0-IN
+
+
+== 9. Best practices
 
 - Each task is to be considered an application of its own
 - Initialize shared resources before task creation
@@ -1256,7 +1264,7 @@ void main(void) {
 ```
 
 
-== 9. References
+== References
 
 === Books
 - https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/index.html
