@@ -1079,8 +1079,6 @@ changed" even though the second thread did work that violates that assumption.
 == 5. Synchronization Objects
 
 === Flag
-=== Signal
-=== Event
 
 Flags, signals or events are used to control the program flow and do not define
 critical sections. They represent just a simple way of intertask synchronizing
@@ -1208,6 +1206,8 @@ priority of the running task and the task waiting for a message
 //- Take a look at a program (for example .com, .exe or .elf)
 //- Explain how the program is loaded in to the memory
 
+- Memory barrier
+
 == 8. Debugging
 
 
@@ -1215,6 +1215,7 @@ priority of the running task and the task waiting for a message
 - https://www.youtube.com/watch?v=O0L2C4FLaFk
 - https://www.youtube.com/watch?v=AgSQL89zWM0&list=PL1sbHjUq1DdqQSBlk-uM-EJ3O1iof0-IN
 
+- Spot breakboint to check for race condition detection
 
 == 9. Best practices
 
@@ -1224,6 +1225,7 @@ priority of the running task and the task waiting for a message
 - Use RTOS to monitor task health
 - Evaluate potential system failures and recovery strategies
 - Use design patterns to improve maintenance and development
+- Do not use memalloc and clean dynamically to avoid memory leaks and fragmentation
 
 ---
 
